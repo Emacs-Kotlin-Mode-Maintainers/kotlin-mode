@@ -37,6 +37,12 @@
   )
 
 
+(defvar kotlin-mode-syntax-table
+  (let ((st (make-syntax-table)))
+
+    st))
+
+
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
   :group 'kotlin
