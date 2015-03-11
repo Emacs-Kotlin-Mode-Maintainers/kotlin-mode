@@ -25,7 +25,11 @@
 
 ;;; Code:
 
-
+(defcustom kotlin-mode-hook nil
+  "Hook run after entering `kotlin-mode'."
+  :type 'hook
+  :group 'kotlin
+  )
 
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
