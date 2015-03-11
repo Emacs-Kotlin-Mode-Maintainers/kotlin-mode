@@ -31,6 +31,12 @@
   :group 'kotlin
   )
 
+
+(defvar kotlin-mode-map (make-sparse-keymap)
+  "Keymap used by `kotlin-mode'."
+  )
+
+
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
   :group 'kotlin
