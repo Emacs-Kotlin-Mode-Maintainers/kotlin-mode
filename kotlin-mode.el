@@ -53,6 +53,7 @@
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
   :group 'kotlin
+  :syntax-table kotlin-mode-syntax-table
   )
 
 (provide 'kotlin-mode)
