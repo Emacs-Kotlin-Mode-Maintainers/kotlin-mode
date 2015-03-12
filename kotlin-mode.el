@@ -27,5 +27,10 @@
 
 
 
+(define-derived-mode kotlin-mode prog-mode "Kotlin"
+  "Major mode for editing Kotlin."
+  :group 'kotlin
+  )
+
 (provide 'kotlin-mode)
 ;;; kotlin-mode.el ends here
