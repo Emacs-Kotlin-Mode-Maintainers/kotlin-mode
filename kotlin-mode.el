@@ -50,6 +50,15 @@
     st))
 
 
+;;; Font Lock
+
+(defvar kotlin-mode-font-lock-keywords
+  `(
+    )
+  "Default highlighting expression for `kotlin-mode'"
+  )
+
+
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
   :group 'kotlin
