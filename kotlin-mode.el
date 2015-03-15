@@ -25,6 +25,8 @@
 
 ;;; Code:
 
+(require 'rx)
+
 (defcustom kotlin-mode-hook nil
   "Hook run after entering `kotlin-mode'."
   :type 'hook
@@ -51,6 +53,9 @@
 
 
 ;;; Font Lock
+
+(defconst kotlin-mode--misc-keywords
+  '("package" "import"))
 
 (defvar kotlin-mode-font-lock-keywords
   `(
