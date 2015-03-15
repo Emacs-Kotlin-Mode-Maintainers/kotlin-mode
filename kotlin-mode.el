@@ -61,6 +61,9 @@
 
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
+
+  (setq-local font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
+
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table
   )
