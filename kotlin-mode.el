@@ -63,6 +63,9 @@
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
 
+(defconst kotlin-mode--val-decl-keywords
+  '("val" "var"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     )
