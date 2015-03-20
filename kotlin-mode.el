@@ -66,6 +66,10 @@
 (defconst kotlin-mode--val-decl-keywords
   '("val" "var"))
 
+(defconst kotlin-mode--statement-keywords
+  '("if" "else" "try" "while" "do"
+    "throw" "return" "continue" "break" "when" "is" "in"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     )
