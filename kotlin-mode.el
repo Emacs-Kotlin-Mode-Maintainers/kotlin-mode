@@ -57,6 +57,9 @@
 (defconst kotlin-mode--misc-keywords
   '("package" "import"))
 
+(defconst kotlin-mode--type-decl-keywords
+  '("class" "trait" "typealias"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     )
