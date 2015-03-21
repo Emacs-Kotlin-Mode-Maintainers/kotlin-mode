@@ -85,6 +85,11 @@
 
 (defvar kotlin-mode-font-lock-keywords
   `(
+    ;; Keywords
+    (,(rx-to-string
+     `(and bow (group (or ,@kotlin-mode--keywords)) eow)
+     t)
+     1 font-lock-keyword-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
