@@ -83,6 +83,9 @@
   "Keywords used in Kotlin language."
   )
 
+(defconst kotlin-mode--constants-keywords
+  '("null" "true" "false"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     ;; Keywords
