@@ -90,6 +90,12 @@
      `(and bow (group (or ,@kotlin-mode--keywords)) eow)
      t)
      1 font-lock-keyword-face)
+
+    ;; Types
+    (,(rx-to-string
+      `(and (* space) ":" (* space) (group (+ word)))
+      t)
+     0 font-lock-type-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
