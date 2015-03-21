@@ -106,6 +106,12 @@
             (group (+ word)) eow)
       t)
      1 font-lock-type-face)
+
+    ;; Constants
+    (,(rx-to-string
+       `(and bow (group (or ,@kotlin-mode--constants-keywords)) eow)
+       t)
+     0 font-lock-constant-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
