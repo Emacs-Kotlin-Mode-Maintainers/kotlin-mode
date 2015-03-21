@@ -73,6 +73,16 @@
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
 
+(defvar kotlin-mode--keywords
+  (append kotlin-mode--misc-keywords
+          kotlin-mode--type-decl-keywords
+          kotlin-mode--fun-decl-keywords
+          kotlin-mode--val-decl-keywords
+          kotlin-mode--statement-keywords
+          kotlin-mode--context-variables-keywords)
+  "Keywords used in Kotlin language."
+  )
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     )
