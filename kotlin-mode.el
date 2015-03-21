@@ -60,6 +60,9 @@
 (defconst kotlin-mode--type-decl-keywords
   '("class" "trait" "typealias"))
 
+(defconst kotlin-mode--fun-decl-keywords
+  '("fun"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     )
