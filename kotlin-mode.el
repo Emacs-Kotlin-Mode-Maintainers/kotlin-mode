@@ -96,6 +96,13 @@
       `(and (* space) ":" (* space) (group (+ word)))
       t)
      0 font-lock-type-face)
+
+    ;; Classes/Enums
+    (,(rx-to-string
+      `(and bow "class" eow (+ space)
+            (group (+ word)) eow)
+      t)
+     1 font-lock-type-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
