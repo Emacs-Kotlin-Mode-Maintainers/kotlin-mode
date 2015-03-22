@@ -70,6 +70,9 @@
   '("if" "else" "try" "while" "do"
     "throw" "return" "continue" "break" "when" "is" "in"))
 
+(defconst kotlin-mode--context-variables-keywords
+  '("this" "super"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     )
