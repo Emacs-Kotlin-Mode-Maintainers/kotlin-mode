@@ -134,6 +134,15 @@
              (+ space) bow (group (+ (any alnum word))) eow)
        t)
      1 font-lock-function-name-face)
+
+    ;; Access modifier
+    ;; Access modifier is valid identifier being used as variable
+    ;; TODO: Highlight only modifiers in the front of class/fun
+    (,(rx-to-string
+       `(and bow (group (or ,@kotlin-mode--modifier-keywords))
+             eow)
+       t)
+     1 font-lock-keyword-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
