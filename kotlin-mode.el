@@ -89,6 +89,10 @@
 (defconst kotlin-mode--constants-keywords
   '("null" "true" "false"))
 
+(defconst kotlin-mode--modifier-keywords
+  '("open" "private" "protected" "public"
+    "override" "abstract" "final"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     ;; Keywords
