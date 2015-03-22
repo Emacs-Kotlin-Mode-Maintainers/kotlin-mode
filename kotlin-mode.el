@@ -143,6 +143,19 @@
              eow)
        t)
      1 font-lock-keyword-face)
+
+    ;; try-catch-finally
+    ;; `catch' and `finally' are valid identifier being used as variable
+    (,(rx-to-string
+       `(and bow (group "catch") eow
+             (* space) (*? anything) "{" )
+       t)
+     1 font-lock-keyword-face)
+    (,(rx-to-string
+       `(and bow (group "finally") eow
+             (*? (or space ?\n)) "{")
+       t)
+     1 font-lock-keyword-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
