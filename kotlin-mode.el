@@ -45,6 +45,9 @@
     ;; Strings
     (modify-syntax-entry ?\" "\"" st)
 
+    ;; `_' as being a valid part of a word
+    (modify-syntax-entry ?_ "w" st)
+
     ;; b-style comment
     (modify-syntax-entry ?/ ". 124b" st)
     (modify-syntax-entry ?* ". 23" st)
