@@ -115,6 +115,14 @@
        `(and bow (group (or ,@kotlin-mode--constants-keywords)) eow)
        t)
      0 font-lock-constant-face)
+
+    ;; Value bindings
+    (,(rx-to-string
+       `(and bow (or ,@kotlin-mode--val-decl-keywords) eow
+             (+ space)
+             (group (+ word)) (* space)  (\? ":"))
+       t)
+     1 font-lock-variable-name-face t)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
