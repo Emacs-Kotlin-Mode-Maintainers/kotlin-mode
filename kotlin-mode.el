@@ -159,6 +159,14 @@
              (*? (or space ?\n)) "{")
        t)
      1 font-lock-keyword-face)
+
+    ;; Properties
+    ;; by/get/set are valid identifiers being used as variable
+    ;; TODO: Highlight keywords in the property declaration statement
+    (,(rx-to-string
+       `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
+       t)
+     1 font-lock-keyword-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
