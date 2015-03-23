@@ -93,6 +93,9 @@
   '("open" "private" "protected" "public"
     "override" "abstract" "final"))
 
+(defconst kotlin-mode--property-keywords
+  '("by" "get" "set"))
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     ;; Keywords
