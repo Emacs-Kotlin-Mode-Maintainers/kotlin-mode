@@ -177,6 +177,13 @@
        `(and bow (group (or ,@kotlin-mode--initializer-keywords)) eow)
        t)
      1 font-lock-keyword-face)
+
+    ;; Package names
+    (,(rx-to-string
+       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
+             (group (+ (any word ?.))))
+       t)
+     1 font-lock-string-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
