@@ -171,6 +171,12 @@
        `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
        t)
      1 font-lock-keyword-face)
+
+    ;; Constructor/Initializer blocks
+    (,(rx-to-string
+       `(and bow (group (or ,@kotlin-mode--initializer-keywords)) eow)
+       t)
+     1 font-lock-keyword-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
