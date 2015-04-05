@@ -127,6 +127,13 @@
              (group (+ word)) (* space)  (\? ":"))
        t)
      1 font-lock-variable-name-face t)
+
+    ;; Function names
+    (,(rx-to-string
+       `(and (or ,@kotlin-mode--fun-decl-keywords)
+             (+ space) bow (group (+ (any alnum word))) eow)
+       t)
+     1 font-lock-function-name-face)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
