@@ -96,6 +96,10 @@
 (defconst kotlin-mode--property-keywords
   '("by" "get" "set"))
 
+(defconst kotlin-mode--initializer-keywords
+  '("init" "constructor")
+  )
+
 (defvar kotlin-mode-font-lock-keywords
   `(
     ;; Keywords
