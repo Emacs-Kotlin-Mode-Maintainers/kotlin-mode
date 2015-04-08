@@ -199,6 +199,20 @@
                          (match-data))))
   )
 
+(defun kotlin-mode--syntax-propertize-function (start end)
+  (let ((case-fold-search))
+    (goto-char start)
+    (remove-text-properties start end '(kotlin-property--interpolation))
+    (funcall
+     (syntax-propertize-rules
+      ((let ((identifier '(any alnum " !%&()*+-./:<>?[]^_|~")))
+         (rx-to-string
+          `(or (group "${" (* ,identifier) "}")
+               (group "$" (+ ,identifier)))))
+       (0 (ignore (kotlin-mode--syntax-propertize-interpolation)))))
+     start end))
+  )
+
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
