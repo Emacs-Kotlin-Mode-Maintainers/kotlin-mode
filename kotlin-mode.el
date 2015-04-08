@@ -188,6 +188,16 @@
   "Default highlighting expression for `kotlin-mode'"
   )
 
+(defun kotlin-mode--syntax-propertize-interpolation ()
+  (let* ((pos (match-beginning 0))
+         (context (save-excursion
+                    (save-match-data (syntax-ppss pos)))))
+    (when (nth 3 context)
+      (put-text-property pos
+                         (1+ pos)
+                         'kotlin-property--interpolation
+                         (match-data))))
+  )
 
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
