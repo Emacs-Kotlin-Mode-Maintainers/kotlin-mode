@@ -213,6 +213,21 @@
      start end))
   )
 
+(defun kotlin-mode--match-interpolation (limit)
+  (let ((pos (next-single-char-property-change (point)
+                                               'kotlin-property--interpolation
+                                               nil
+                                               limit)))
+    (when (and pos (> pos (point)))
+      (goto-char pos)
+      (let ((value (get-text-property pos 'kotlin-property--interpolation)))
+        (if value
+            (progn (set-match-data value)
+                   t)
+          (kotlin-mode--match-interpolation limit)))))
+  )
+
+
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
