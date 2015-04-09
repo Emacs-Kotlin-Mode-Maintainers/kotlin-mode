@@ -232,6 +232,7 @@
   "Major mode for editing Kotlin."
 
   (setq-local font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
+  (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
 
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table
