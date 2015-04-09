@@ -40,6 +40,9 @@
 (defvar kotlin-mode-syntax-table
   (let ((st (make-syntax-table)))
 
+    ;; Strings
+    (modify-syntax-entry ?\" "\"" st)
+
     ;; b-style comment
     (modify-syntax-entry ?/ ". 124b" st)
     (modify-syntax-entry ?* ". 23" st)
