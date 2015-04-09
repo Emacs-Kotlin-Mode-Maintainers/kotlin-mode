@@ -184,6 +184,9 @@
              (group (+ (any word ?.))))
        t)
      1 font-lock-string-face)
+
+    ;; String interpolation
+    (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t)
     )
   "Default highlighting expression for `kotlin-mode'"
   )
