@@ -1,7 +1,7 @@
 ;;; kotlin-mode.el --- Major mode for kotlin
 ;; -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Shodai Yokoyama
+;; Copyright © 2015  Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Keywords: languages
