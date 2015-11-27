@@ -59,7 +59,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("class" "trait" "typealias"))
+  '("class" "trait" "typealias" "enum"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -68,8 +68,14 @@
   '("val" "var"))
 
 (defconst kotlin-mode--statement-keywords
-  '("if" "else" "try" "while" "do"
-    "throw" "return" "continue" "break" "when" "is" "in"))
+  '(;; Branching
+    "if" "else"
+    ;; Exceptions
+    "try" "catch" "finally" "throw"
+    ;; Loops
+    "while" "for" "do" "continue" "break"
+    ;; Miscellaneous
+    "when" "is" "in"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
@@ -88,7 +94,8 @@
 
 (defconst kotlin-mode--modifier-keywords
   '("open" "private" "protected" "public"
-    "override" "abstract" "final"))
+    "override" "abstract" "final"
+    "annotation" "internal" "in" "out"))
 
 (defconst kotlin-mode--property-keywords
   '("by" "get" "set"))
@@ -143,19 +150,6 @@
     (,(rx-to-string
        `(and bow (group (or ,@kotlin-mode--modifier-keywords))
              eow)
-       t)
-     1 font-lock-keyword-face)
-
-    ;; try-catch-finally
-    ;; `catch' and `finally' are valid identifier being used as variable
-    (,(rx-to-string
-       `(and bow (group "catch") eow
-             (* space) (*? anything) "{" )
-       t)
-     1 font-lock-keyword-face)
-    (,(rx-to-string
-       `(and bow (group "finally") eow
-             (*? (or space ?\n)) "{")
        t)
      1 font-lock-keyword-face)
 
