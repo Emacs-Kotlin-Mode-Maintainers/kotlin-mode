@@ -95,10 +95,10 @@
 (defconst kotlin-mode--modifier-keywords
   '("open" "private" "protected" "public"
     "override" "abstract" "final"
-    "annotation" "internal" "in" "out"))
+    "annotation" "internal")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
-  '("by" "get" "set"))
+  '()) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
