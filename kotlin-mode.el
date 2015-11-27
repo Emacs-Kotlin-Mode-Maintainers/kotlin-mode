@@ -59,7 +59,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("data class" "class" "trait" "typealias" "enum"))
+  '("data" "class" "trait" "typealias" "enum"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
