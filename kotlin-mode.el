@@ -112,7 +112,7 @@
 
     ;; Types
     (,(rx-to-string
-      `(and (* space) ":" (* space) (group (+ word)))
+      `(and (* space) ":" (* space) (group (+ (or word "<" ">" "."))))
       t)
      0 font-lock-type-face)
 
