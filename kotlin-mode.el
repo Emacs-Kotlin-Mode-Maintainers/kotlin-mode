@@ -30,13 +30,11 @@
 (defcustom kotlin-mode-hook nil
   "Hook run after entering `kotlin-mode'."
   :type 'hook
-  :group 'kotlin
-  )
+  :group 'kotlin)
 
 
 (defvar kotlin-mode-map (make-sparse-keymap)
-  "Keymap used by `kotlin-mode'."
-  )
+  "Keymap used by `kotlin-mode'.")
 
 
 (defvar kotlin-mode-syntax-table
@@ -83,8 +81,7 @@
           kotlin-mode--val-decl-keywords
           kotlin-mode--statement-keywords
           kotlin-mode--context-variables-keywords)
-  "Keywords used in Kotlin language."
-  )
+  "Keywords used in Kotlin language.")
 
 (defconst kotlin-mode--constants-keywords
   '("null" "true" "false"))
@@ -97,12 +94,10 @@
   '("by" "get" "set"))
 
 (defconst kotlin-mode--initializer-keywords
-  '("init" "constructor")
-  )
+  '("init" "constructor"))
 
 (defvar kotlin-mode-font-lock-keywords
-  `(
-    ;; Keywords
+  `(;; Keywords
     (,(rx-to-string
      `(and bow (group (or ,@kotlin-mode--keywords)) eow)
      t)
@@ -186,10 +181,8 @@
      1 font-lock-string-face)
 
     ;; String interpolation
-    (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t)
-    )
-  "Default highlighting expression for `kotlin-mode'"
-  )
+    (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
+  "Default highlighting expression for `kotlin-mode'")
 
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
@@ -199,8 +192,7 @@
       (put-text-property pos
                          (1+ pos)
                          'kotlin-property--interpolation
-                         (match-data))))
-  )
+                         (match-data)))))
 
 (defun kotlin-mode--syntax-propertize-function (start end)
   (let ((case-fold-search))
@@ -213,8 +205,7 @@
           `(or (group "${" (* ,identifier) "}")
                (group "$" (+ ,identifier)))))
        (0 (ignore (kotlin-mode--syntax-propertize-interpolation)))))
-     start end))
-  )
+     start end)))
 
 (defun kotlin-mode--match-interpolation (limit)
   (let ((pos (next-single-char-property-change (point)
@@ -227,8 +218,7 @@
         (if value
             (progn (set-match-data value)
                    t)
-          (kotlin-mode--match-interpolation limit)))))
-  )
+          (kotlin-mode--match-interpolation limit))))))
 
 
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
@@ -238,8 +228,7 @@
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
 
   :group 'kotlin
-  :syntax-table kotlin-mode-syntax-table
-  )
+  :syntax-table kotlin-mode-syntax-table)
 
 (provide 'kotlin-mode)
 ;;; kotlin-mode.el ends here
