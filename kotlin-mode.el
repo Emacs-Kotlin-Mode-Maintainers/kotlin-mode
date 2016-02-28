@@ -220,6 +220,10 @@
 
   (setq-local font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
+  (set (make-local-variable 'comment-start) "//")
+  (set (make-local-variable 'comment-padding) 1)
+  (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
+  (set (make-local-variable 'comment-end) "")
 
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table)
