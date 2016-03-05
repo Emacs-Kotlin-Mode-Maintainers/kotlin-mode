@@ -75,7 +75,7 @@
     ;; Loops
     "while" "for" "do" "continue" "break"
     ;; Miscellaneous
-    "when" "is" "in"))
+    "when" "is" "in" "as"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
