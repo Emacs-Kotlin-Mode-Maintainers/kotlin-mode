@@ -118,7 +118,7 @@
 
     ;; Classes/Enums
     (,(rx-to-string
-      `(and bow "class" eow (+ space)
+      `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
             (group (+ word)) eow)
       t)
      1 font-lock-type-face)
