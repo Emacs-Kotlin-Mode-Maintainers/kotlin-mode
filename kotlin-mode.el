@@ -59,7 +59,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("nested" "inner" "data" "class" "trait" "typealias" "enum"))
+  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
