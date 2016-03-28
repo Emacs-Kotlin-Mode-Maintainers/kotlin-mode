@@ -59,7 +59,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("nested" "inner" "data" "class" "trait" "typealias" "enum"))
+  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -75,7 +75,7 @@
     ;; Loops
     "while" "for" "do" "continue" "break"
     ;; Miscellaneous
-    "when" "is" "in"))
+    "when" "is" "in" "as"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
@@ -118,7 +118,7 @@
 
     ;; Classes/Enums
     (,(rx-to-string
-      `(and bow "class" eow (+ space)
+      `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
             (group (+ word)) eow)
       t)
      1 font-lock-type-face)
