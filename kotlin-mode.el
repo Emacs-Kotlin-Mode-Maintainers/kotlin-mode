@@ -27,18 +27,6 @@
 
 (require 'rx)
 
-(defcustom kotlin-mode-hook nil
-  "Hook run after entering `kotlin-mode'."
-  :type 'hook
-  :group 'kotlin
-  )
-
-
-(defvar kotlin-mode-map (make-sparse-keymap)
-  "Keymap used by `kotlin-mode'."
-  )
-
-
 (defvar kotlin-mode-syntax-table
   (let ((st (make-syntax-table)))
 
