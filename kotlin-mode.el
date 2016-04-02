@@ -231,6 +231,7 @@
   )
 
 
+;;;###autoload
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
