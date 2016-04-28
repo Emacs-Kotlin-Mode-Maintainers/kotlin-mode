@@ -241,5 +241,8 @@
   :syntax-table kotlin-mode-syntax-table
   )
 
+;;;###autoload
+(add-to-list 'auto-mode-alist '("\\.kt\\'" . kotlin-mode) t)
+
 (provide 'kotlin-mode)
 ;;; kotlin-mode.el ends here
