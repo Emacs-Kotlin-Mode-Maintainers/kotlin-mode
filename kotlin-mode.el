@@ -28,6 +28,12 @@
 
 (require 'rx)
 
+(defvar kotlin-mode-map
+  (let ((map (make-keymap)))
+    (define-key map (kbd "<tab>") 'c-indent-line-or-region)
+    map)
+  "Keymap for kotlin-mode")
+
 (defvar kotlin-mode-syntax-table
   (let ((st (make-syntax-table)))
 
@@ -50,7 +56,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum"))
+  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -85,7 +91,7 @@
 
 (defconst kotlin-mode--modifier-keywords
   '("open" "private" "protected" "public"
-    "override" "abstract" "final"
+    "override" "abstract" "final" "companion"
     "annotation" "internal")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
@@ -205,6 +211,51 @@
                    t)
           (kotlin-mode--match-interpolation limit))))))
 
+;; Indentation rules
+;; 1.) If we are at the beginning of the buffer, indent to column 0
+;; 2.) If we are currently at an `}' line, then de-indent relative to the previous line
+;; 3.) If we _first_ see an `}' line before out current line, then we should indent our current line to the same indentation as the `}' line.
+;; 4.) If we _first_ see a "start line" like `if (true) {', then we need to _increase_ out indentation relative to that start line.
+;; 5.) If none of the above apply, then do not indent at all.
+(defun kotlin-mode--indent-line ()
+  "Indent current line as kotlin code"
+  (interactive)
+  (if (bobp) ; 1.)
+      (progn
+        (message "Rule 1.")
+        (kotlin-mode--beginning-of-buffer-indent))
+    (let ((not-indented t) cur-indent)
+      (if (looking-at "^[ \t]*}") ; 2.)
+          (progn
+            (message "Rule 2.")
+            (save-excursion
+              (forward-line -1)
+              (setq cur-indent (- (current-indentation) default-tab-width)))
+            (if (< cur-indent 0)
+                (setq cur-indent 0)))
+        (save-excursion
+          (while not-indented
+            (forward-line -1)
+            (if (looking-at "^[ \t]*}") ; 3.)
+                (progn
+                  (message "Rule 3.")
+                  (setq cur-indent (current-indentation))
+                  (setq not-indented nil))
+              (if (looking-at ".*{[ \t]*$") ; 4.)
+                  (progn
+                    (message "Rule 4.")
+                    (setq cur-indent (+ (current-indentation) default-tab-width))
+                    (setq not-indented nil))
+                (if (bobp) ; 5.)
+                    (progn
+                      (message "Rule 5.")
+                      (setq not-indented nil))))))))
+      (if cur-indent
+          (indent-line-to cur-indent)
+        (indent-line-to 0)))))
+
+(defun kotlin-mode--beginning-of-buffer-indent ()
+  (indent-line-to 0))
 
 ;;;###autoload
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
@@ -216,6 +267,7 @@
   (set (make-local-variable 'comment-padding) 1)
   (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
   (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'indent-line-function) 'kotlin-mode--indent-line)
 
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table)
