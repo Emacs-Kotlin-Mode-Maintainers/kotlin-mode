@@ -5,6 +5,7 @@
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Keywords: languages
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -26,16 +27,6 @@
 ;;; Code:
 
 (require 'rx)
-
-(defcustom kotlin-mode-hook nil
-  "Hook run after entering `kotlin-mode'."
-  :type 'hook
-  :group 'kotlin)
-
-
-(defvar kotlin-mode-map (make-sparse-keymap)
-  "Keymap used by `kotlin-mode'.")
-
 
 (defvar kotlin-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -219,7 +210,7 @@
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
-  (setq-local font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
+  (setq font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
   (set (make-local-variable 'comment-start) "//")
   (set (make-local-variable 'comment-padding) 1)
