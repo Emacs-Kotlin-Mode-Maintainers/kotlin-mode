@@ -237,12 +237,12 @@
              (save-excursion
                (while not-indented
                  (forward-line -1)
-                 (cond ((looking-at "^[ \t]*}") ; 3.)
-                        (setq cur-indent (current-indentation))
+                 (cond ((looking-at ".*{[ \t]*$") ; 4.)
+                        (setq cur-indent (+ (current-indentation) default-tab-width))
                         (setq not-indented nil))
 
-                       ((looking-at ".*{[ \t]*$") ; 4.)
-                        (setq cur-indent (+ (current-indentation) default-tab-width))
+                       ((looking-at "^[ \t]*}") ; 3.)
+                        (setq cur-indent (current-indentation))
                         (setq not-indented nil))
 
                        ((looking-at ".*{.*->[ \t]*$")
