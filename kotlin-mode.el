@@ -1,5 +1,4 @@
-;;; kotlin-mode.el --- Major mode for kotlin
-;; -*- lexical-binding: t; -*-
+;;; kotlin-mode.el --- Major mode for kotlin -*- lexical-binding: t; -*-
 
 ;; Copyright © 2015  Shodai Yokoyama
 
