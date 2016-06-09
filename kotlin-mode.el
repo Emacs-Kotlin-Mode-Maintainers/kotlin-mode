@@ -245,6 +245,10 @@
                         (setq cur-indent (+ (current-indentation) default-tab-width))
                         (setq not-indented nil))
 
+                       ((looking-at ".*{.*->[ \t]*$")
+                        (setq cur-indent (+ (current-indentation) default-tab-width))
+                        (setq not-indented nil))
+
                        ((looking-at ".*([ \t]*$")
                         (setq cur-indent (+ (current-indentation) (* 2 default-tab-width)))
                         (setq not-indented nil))
