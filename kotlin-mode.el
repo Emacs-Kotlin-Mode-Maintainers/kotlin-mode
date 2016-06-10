@@ -27,6 +27,16 @@
 
 (require 'rx)
 
+(defgroup kotlin nil
+  "A Kotlin major mode."
+  :group 'languages)
+
+(defcustom kotlin-tab-width default-tab-width
+  "The tab width to use for indentation."
+  :type 'integer
+  :group 'kotlin-mode
+  :safe 'integerp)
+
 (defvar kotlin-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "<tab>") 'c-indent-line-or-region)
@@ -221,14 +231,14 @@
       (cond ((looking-at "^[ \t]*}")
              (save-excursion
                (forward-line -1)
-               (setq cur-indent (- (current-indentation) default-tab-width)))
+               (setq cur-indent (- (current-indentation) kotlin-tab-width)))
              (if (< cur-indent 0)
                  (setq cur-indent 0)))
 
             ((looking-at "^[ \t]*)")
              (save-excursion
                (forward-line -1)
-               (setq cur-indent (- (current-indentation) (* 2 default-tab-width))))
+               (setq cur-indent (- (current-indentation) (* 2 kotlin-tab-width))))
              (if (< cur-indent 0)
                  (setq cur-indent 0)))
 
@@ -237,7 +247,7 @@
                (while not-indented
                  (forward-line -1)
                  (cond ((looking-at ".*{[ \t]*$") ; 4.)
-                        (setq cur-indent (+ (current-indentation) default-tab-width))
+                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
                         (setq not-indented nil))
 
                        ((looking-at "^[ \t]*}") ; 3.)
@@ -245,11 +255,11 @@
                         (setq not-indented nil))
 
                        ((looking-at ".*{.*->[ \t]*$")
-                        (setq cur-indent (+ (current-indentation) default-tab-width))
+                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
                         (setq not-indented nil))
 
                        ((looking-at ".*([ \t]*$")
-                        (setq cur-indent (+ (current-indentation) (* 2 default-tab-width)))
+                        (setq cur-indent (+ (current-indentation) (* 2 kotlin-tab-width)))
                         (setq not-indented nil))
 
                        ((looking-at "^[ \t]*).*$")
