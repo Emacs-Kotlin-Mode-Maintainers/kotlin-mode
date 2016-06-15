@@ -81,7 +81,7 @@
     ;; Loops
     "while" "for" "do" "continue" "break"
     ;; Miscellaneous
-    "when" "is" "in" "as"))
+    "when" "is" "in" "as" "return"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
@@ -99,12 +99,12 @@
   '("null" "true" "false"))
 
 (defconst kotlin-mode--modifier-keywords
-  '("open" "private" "protected" "public"
+  '("open" "private" "protected" "public" "lateinit"
     "override" "abstract" "final" "companion"
-    "annotation" "internal")) ;; "in" "out"
+    "annotation" "internal" "const" "in" "out")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
-  '()) ;; "by" "get" "set"
+  '("by")) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
@@ -116,9 +116,16 @@
      t)
      1 font-lock-keyword-face)
 
+    ;; Package names
+    (,(rx-to-string
+       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
+             (group (+ (any word ?.))))
+       t)
+     1 font-lock-string-face)
+
     ;; Types
     (,(rx-to-string
-      `(and (* space) ":" (* space) (group (+ (or word "<" ">" "." "?" "!"))))
+      `(and bow upper (group (* (or word "<" ">" "." "?" "!"))))
       t)
      0 font-lock-type-face)
 
@@ -173,16 +180,14 @@
        t)
      1 font-lock-keyword-face)
 
-    ;; Package names
-    (,(rx-to-string
-       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
-             (group (+ (any word ?.))))
-       t)
-     1 font-lock-string-face)
-
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
+
+(defun kotlin-mode--new-font-lock-keywords ()
+  '(
+    ("package\\|import" . font-lock-keyword-face)
+    ))
 
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
