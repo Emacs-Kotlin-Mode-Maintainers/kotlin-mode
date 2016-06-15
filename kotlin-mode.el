@@ -109,7 +109,7 @@
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
 
-(defvar kotlin-mode-font-lock-keywords
+(defvar kotlin-mode--font-lock-keywords
   `(;; Keywords
     (,(rx-to-string
      `(and bow (group (or ,@kotlin-mode--keywords)) eow)
@@ -280,7 +280,7 @@
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
-  (setq font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
+  (setq font-lock-defaults '((kotlin-mode--font-lock-keywords) nil nil))
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
   (set (make-local-variable 'comment-start) "//")
   (set (make-local-variable 'comment-padding) 1)
