@@ -1,7 +1,7 @@
 ;;; kotlin-mode.el --- Major mode for kotlin
 ;; -*- lexical-binding: t; -*-
 
-;; Copyright (C) 2015  Shodai Yokoyama
+;; Copyright © 2015  Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Keywords: languages
@@ -30,13 +30,11 @@
 (defcustom kotlin-mode-hook nil
   "Hook run after entering `kotlin-mode'."
   :type 'hook
-  :group 'kotlin
-  )
+  :group 'kotlin)
 
 
 (defvar kotlin-mode-map (make-sparse-keymap)
-  "Keymap used by `kotlin-mode'."
-  )
+  "Keymap used by `kotlin-mode'.")
 
 
 (defvar kotlin-mode-syntax-table
@@ -61,7 +59,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("class" "trait" "typealias"))
+  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -70,8 +68,14 @@
   '("val" "var"))
 
 (defconst kotlin-mode--statement-keywords
-  '("if" "else" "try" "while" "do"
-    "throw" "return" "continue" "break" "when" "is" "in"))
+  '(;; Branching
+    "if" "else"
+    ;; Exceptions
+    "try" "catch" "finally" "throw"
+    ;; Loops
+    "while" "for" "do" "continue" "break"
+    ;; Miscellaneous
+    "when" "is" "in" "as"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
@@ -83,26 +87,24 @@
           kotlin-mode--val-decl-keywords
           kotlin-mode--statement-keywords
           kotlin-mode--context-variables-keywords)
-  "Keywords used in Kotlin language."
-  )
+  "Keywords used in Kotlin language.")
 
 (defconst kotlin-mode--constants-keywords
   '("null" "true" "false"))
 
 (defconst kotlin-mode--modifier-keywords
   '("open" "private" "protected" "public"
-    "override" "abstract" "final"))
+    "override" "abstract" "final"
+    "annotation" "internal")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
-  '("by" "get" "set"))
+  '()) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
-  '("init" "constructor")
-  )
+  '("init" "constructor"))
 
 (defvar kotlin-mode-font-lock-keywords
-  `(
-    ;; Keywords
+  `(;; Keywords
     (,(rx-to-string
      `(and bow (group (or ,@kotlin-mode--keywords)) eow)
      t)
@@ -110,13 +112,13 @@
 
     ;; Types
     (,(rx-to-string
-      `(and (* space) ":" (* space) (group (+ word)))
+      `(and (* space) ":" (* space) (group (+ (or word "<" ">" "." "?" "!"))))
       t)
      0 font-lock-type-face)
 
     ;; Classes/Enums
     (,(rx-to-string
-      `(and bow "class" eow (+ space)
+      `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
             (group (+ word)) eow)
       t)
      1 font-lock-type-face)
@@ -151,26 +153,13 @@
        t)
      1 font-lock-keyword-face)
 
-    ;; try-catch-finally
-    ;; `catch' and `finally' are valid identifier being used as variable
-    (,(rx-to-string
-       `(and bow (group "catch") eow
-             (* space) (*? anything) "{" )
-       t)
-     1 font-lock-keyword-face)
-    (,(rx-to-string
-       `(and bow (group "finally") eow
-             (*? (or space ?\n)) "{")
-       t)
-     1 font-lock-keyword-face)
-
     ;; Properties
     ;; by/get/set are valid identifiers being used as variable
     ;; TODO: Highlight keywords in the property declaration statement
-    (,(rx-to-string
-       `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
-       t)
-     1 font-lock-keyword-face)
+    ;; (,(rx-to-string
+    ;;    `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
+    ;;    t)
+    ;;  1 font-lock-keyword-face)
 
     ;; Constructor/Initializer blocks
     (,(rx-to-string
@@ -186,10 +175,8 @@
      1 font-lock-string-face)
 
     ;; String interpolation
-    (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t)
-    )
-  "Default highlighting expression for `kotlin-mode'"
-  )
+    (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
+  "Default highlighting expression for `kotlin-mode'")
 
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
@@ -199,8 +186,7 @@
       (put-text-property pos
                          (1+ pos)
                          'kotlin-property--interpolation
-                         (match-data))))
-  )
+                         (match-data)))))
 
 (defun kotlin-mode--syntax-propertize-function (start end)
   (let ((case-fold-search))
@@ -213,8 +199,7 @@
           `(or (group "${" (* ,identifier) "}")
                (group "$" (+ ,identifier)))))
        (0 (ignore (kotlin-mode--syntax-propertize-interpolation)))))
-     start end))
-  )
+     start end)))
 
 (defun kotlin-mode--match-interpolation (limit)
   (let ((pos (next-single-char-property-change (point)
@@ -227,8 +212,7 @@
         (if value
             (progn (set-match-data value)
                    t)
-          (kotlin-mode--match-interpolation limit)))))
-  )
+          (kotlin-mode--match-interpolation limit))))))
 
 
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
@@ -236,10 +220,13 @@
 
   (setq-local font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
+  (set (make-local-variable 'comment-start) "//")
+  (set (make-local-variable 'comment-padding) 1)
+  (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
+  (set (make-local-variable 'comment-end) "")
 
   :group 'kotlin
-  :syntax-table kotlin-mode-syntax-table
-  )
+  :syntax-table kotlin-mode-syntax-table)
 
 (provide 'kotlin-mode)
 ;;; kotlin-mode.el ends here
