@@ -1,10 +1,10 @@
-;;; kotlin-mode.el --- Major mode for kotlin
-;; -*- lexical-binding: t; -*-
+;;; kotlin-mode.el --- Major mode for kotlin -*- lexical-binding: t; -*-
 
 ;; Copyright © 2015  Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Keywords: languages
+;; Package-Requires: ((emacs "24.3"))
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -27,15 +27,21 @@
 
 (require 'rx)
 
-(defcustom kotlin-mode-hook nil
-  "Hook run after entering `kotlin-mode'."
-  :type 'hook
-  :group 'kotlin)
+(defgroup kotlin nil
+  "A Kotlin major mode."
+  :group 'languages)
 
+(defcustom kotlin-tab-width default-tab-width
+  "The tab width to use for indentation."
+  :type 'integer
+  :group 'kotlin-mode
+  :safe 'integerp)
 
-(defvar kotlin-mode-map (make-sparse-keymap)
-  "Keymap used by `kotlin-mode'.")
-
+(defvar kotlin-mode-map
+  (let ((map (make-keymap)))
+    (define-key map (kbd "<tab>") 'c-indent-line-or-region)
+    map)
+  "Keymap for kotlin-mode")
 
 (defvar kotlin-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -59,7 +65,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum"))
+  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -75,7 +81,7 @@
     ;; Loops
     "while" "for" "do" "continue" "break"
     ;; Miscellaneous
-    "when" "is" "in" "as"))
+    "when" "is" "in" "as" "return"))
 
 (defconst kotlin-mode--context-variables-keywords
   '("this" "super"))
@@ -93,26 +99,33 @@
   '("null" "true" "false"))
 
 (defconst kotlin-mode--modifier-keywords
-  '("open" "private" "protected" "public"
-    "override" "abstract" "final"
-    "annotation" "internal")) ;; "in" "out"
+  '("open" "private" "protected" "public" "lateinit"
+    "override" "abstract" "final" "companion"
+    "annotation" "internal" "const" "in" "out")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
-  '()) ;; "by" "get" "set"
+  '("by")) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
 
-(defvar kotlin-mode-font-lock-keywords
+(defvar kotlin-mode--font-lock-keywords
   `(;; Keywords
     (,(rx-to-string
      `(and bow (group (or ,@kotlin-mode--keywords)) eow)
      t)
      1 font-lock-keyword-face)
 
+    ;; Package names
+    (,(rx-to-string
+       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
+             (group (+ (any word ?.))))
+       t)
+     1 font-lock-string-face)
+
     ;; Types
     (,(rx-to-string
-      `(and (* space) ":" (* space) (group (+ (or word "<" ">" "." "?" "!"))))
+      `(and bow upper (group (* (or word "<" ">" "." "?" "!"))))
       t)
      0 font-lock-type-face)
 
@@ -167,16 +180,14 @@
        t)
      1 font-lock-keyword-face)
 
-    ;; Package names
-    (,(rx-to-string
-       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
-             (group (+ (any word ?.))))
-       t)
-     1 font-lock-string-face)
-
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
+
+(defun kotlin-mode--new-font-lock-keywords ()
+  '(
+    ("package\\|import" . font-lock-keyword-face)
+    ))
 
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
@@ -214,17 +225,73 @@
                    t)
           (kotlin-mode--match-interpolation limit))))))
 
+(defun kotlin-mode--indent-line ()
+  "Indent current line as kotlin code"
+  (interactive)
+  (beginning-of-line)
+  (if (bobp) ; 1.)
+      (progn
+        (kotlin-mode--beginning-of-buffer-indent))
+    (let ((not-indented t) cur-indent)
+      (cond ((looking-at "^[ \t]*}")
+             (save-excursion
+               (forward-line -1)
+               (setq cur-indent (- (current-indentation) kotlin-tab-width)))
+             (if (< cur-indent 0)
+                 (setq cur-indent 0)))
+
+            ((looking-at "^[ \t]*)")
+             (save-excursion
+               (forward-line -1)
+               (setq cur-indent (- (current-indentation) (* 2 kotlin-tab-width))))
+             (if (< cur-indent 0)
+                 (setq cur-indent 0)))
+
+            (t
+             (save-excursion
+               (while not-indented
+                 (forward-line -1)
+                 (cond ((looking-at ".*{[ \t]*$") ; 4.)
+                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
+                        (setq not-indented nil))
+
+                       ((looking-at "^[ \t]*}") ; 3.)
+                        (setq cur-indent (current-indentation))
+                        (setq not-indented nil))
+
+                       ((looking-at ".*{.*->[ \t]*$")
+                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
+                        (setq not-indented nil))
+
+                       ((looking-at ".*([ \t]*$")
+                        (setq cur-indent (+ (current-indentation) (* 2 kotlin-tab-width)))
+                        (setq not-indented nil))
+
+                       ((looking-at "^[ \t]*).*$")
+                        (setq cur-indent (current-indentation))
+                        (setq not-indented nil))
+
+                       ((bobp) ; 5.)
+                        (setq not-indented nil)))))))
+      (if cur-indent
+          (indent-line-to cur-indent)
+        (indent-line-to 0)))))
+
+
+(defun kotlin-mode--beginning-of-buffer-indent ()
+  (indent-line-to 0))
 
 ;;;###autoload
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
-  (setq-local font-lock-defaults '((kotlin-mode-font-lock-keywords) nil nil))
+  (setq font-lock-defaults '((kotlin-mode--font-lock-keywords) nil nil))
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
   (set (make-local-variable 'comment-start) "//")
   (set (make-local-variable 'comment-padding) 1)
   (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
   (set (make-local-variable 'comment-end) "")
+  (set (make-local-variable 'indent-line-function) 'kotlin-mode--indent-line)
 
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table)
