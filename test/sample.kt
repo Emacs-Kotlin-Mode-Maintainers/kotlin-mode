@@ -104,11 +104,16 @@ println(name)
 if (text in names) // names.contains(text) is called
 print("Yes")
 
-names
-.filter { it.startsWith("A") }
-.sortedBy { it }
-.map { it.toUpperCase() }
-.forEach { print(it) }
+names.filter { it.startsWith("A") }
+        .sortedBy { it }
+        .map { it.toUpperCase() }
+        .forEach { print(it) }
+
+fun f() {
+    things.f()
+            .g()
+            .h()
+        }
 
 data class Customer(val name: String, val email: String)
 val positives = list.filter { x -> x > 0 }
