@@ -244,9 +244,11 @@
                (if (< cur-indent 0)
                    (setq cur-indent 0))))
 
-       ((looking-at "^[ \t]*}")
+            ((looking-at "^[ \t]*}")
              (save-excursion
                (forward-line -1)
+               (while (and (looking-at "^[ \t]*\\.") (not (bobp)))
+                 (forward-line -1))
                (setq cur-indent (- (current-indentation) kotlin-tab-width)))
              (if (< cur-indent 0)
                  (setq cur-indent 0)))

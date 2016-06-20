@@ -113,7 +113,7 @@ fun f() {
     things.f()
             .g()
             .h()
-        }
+}
 
 data class Customer(val name: String, val email: String)
 val positives = list.filter { x -> x > 0 }
