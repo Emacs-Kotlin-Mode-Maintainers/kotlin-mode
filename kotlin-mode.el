@@ -225,6 +225,14 @@
                    t)
           (kotlin-mode--match-interpolation limit))))))
 
+(defun kotlin-mode--prev-line ()
+  "Moves up to the nearest non-empty line"
+  (if (not (bobp))
+      (progn
+        (forward-line -1)
+        (while (and (looking-at "^[ \t]*$") (not (bobp)))
+          (forward-line -1)))))
+
 (defun kotlin-mode--indent-line ()
   "Indent current line as kotlin code"
   (interactive)
@@ -235,7 +243,7 @@
     (let ((not-indented t) cur-indent)
       (cond ((looking-at "^[ \t]*\\.")
              (save-excursion
-               (forward-line -1)
+               (kotlin-mode--prev-line)
                (cond ((looking-at "^[ \t]*\\.")
                       (setq cur-indent (current-indentation)))
 
@@ -246,16 +254,16 @@
 
             ((looking-at "^[ \t]*}")
              (save-excursion
-               (forward-line -1)
+               (kotlin-mode--prev-line)
                (while (and (looking-at "^[ \t]*\\.") (not (bobp)))
-                 (forward-line -1))
+                 (kotlin-mode--prev-line))
                (setq cur-indent (- (current-indentation) kotlin-tab-width)))
              (if (< cur-indent 0)
                  (setq cur-indent 0)))
 
             ((looking-at "^[ \t]*)")
              (save-excursion
-               (forward-line -1)
+               (kotlin-mode--prev-line)
                (setq cur-indent (- (current-indentation) (* 2 kotlin-tab-width))))
              (if (< cur-indent 0)
                  (setq cur-indent 0)))
@@ -263,7 +271,7 @@
             (t
              (save-excursion
                (while not-indented
-                 (forward-line -1)
+                 (kotlin-mode--prev-line)
                  (cond ((looking-at ".*{[ \t]*$") ; 4.)
                         (setq cur-indent (+ (current-indentation) kotlin-tab-width))
                         (setq not-indented nil))
