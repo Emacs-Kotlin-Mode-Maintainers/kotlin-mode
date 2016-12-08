@@ -7,7 +7,7 @@ import bar.Bar as bBar
 // a single line comment
 
 /*
- * a multiline comment
+* a multiline comment
 */
 
 fun sum(a: Int, b: Int): Int {
@@ -273,10 +273,10 @@ class Derived(p: Int) : Base(p)
 
 class MyView : View {
     constructor(ctx: Context) : super(ctx) {
-}
+    }
 
-constructor(ctx: Context, attrs: AttributeSet) : super(ctx, attrs) {
-}
+    constructor(ctx: Context, attrs: AttributeSet) : super(ctx, attrs) {
+    }
 }
 
 open class Base {
@@ -704,4 +704,10 @@ inline fun <reified T> TreeNode.findParentOfType(): T? {
         p = p?.parent
     }
     return p as T
+}
+
+class Test {
+    fun f() {
+
+    }
 }
