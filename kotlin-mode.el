@@ -26,6 +26,7 @@
 ;;; Code:
 
 (require 'rx)
+(require 'cc-cmds)
 
 (defgroup kotlin nil
   "A Kotlin major mode."
