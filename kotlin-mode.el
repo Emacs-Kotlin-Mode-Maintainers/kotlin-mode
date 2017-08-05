@@ -25,6 +25,7 @@
 
 ;;; Code:
 
+(require 'comint)
 (require 'rx)
 (require 'cc-cmds)
 
@@ -38,8 +39,71 @@
   :group 'kotlin-mode
   :safe 'integerp)
 
+(defcustom kotlin-command "kotlinc"
+  "The Kotlin command used for evaluating code."
+  :type 'string
+  :group 'kotlin)
+
+(defcustom kotlin-args-repl '()
+  "The arguments to pass to `kotlin-command' to start a REPL."
+  :type 'list
+  :group 'kotlin)
+
+(defcustom kotlin-repl-buffer "*KotlinREPL*"
+  "The name of the KotlinREPL buffer."
+  :type 'string
+  :group 'kotlin)
+
+(defun kotlin-send-region (start end)
+  "Send current region to Kotlin interpreter."
+  (interactive "r")
+  (comint-send-region kotlin-repl-buffer start end)
+  (comint-send-string kotlin-repl-buffer "\n"))
+
+(defun kotlin-send-buffer ()
+  "Send whole buffer to Kotlin interpreter."
+  (interactive)
+  (kotlin-send-region (point-min) (point-max)))
+
+(defun kotlin-send-block ()
+  (interactive)
+  (let* ((p (point)))
+    (mark-paragraph)
+    (kotlin-send-region (region-beginning) (region-end))
+    (goto-char p)))
+
+(defun kotlin-send-line ()
+  (interactive)
+  (kotlin-send-region
+   (line-beginning-position)
+   (line-end-position)))
+
+(defun kotlin-repl ()
+  "Launch a Kotlin REPL using `kotlin-command' as an inferior mode."
+  (interactive)
+
+  (unless (comint-check-proc kotlin-repl-buffer)
+    (set-buffer
+     (apply 'make-comint "KotlinREPL"
+            "env"
+            nil
+            "NODE_NO_READLINE=1"
+            kotlin-command
+            kotlin-args-repl))
+
+    (set (make-local-variable 'comint-preoutput-filter-functions)
+         (cons (lambda (string)
+                 (replace-regexp-in-string "\x1b\\[.[GJK]" "" string)) nil)))
+
+  (pop-to-buffer kotlin-repl-buffer))
+
 (defvar kotlin-mode-map
   (let ((map (make-keymap)))
+    (define-key map (kbd "C-c C-z") 'kotlin-repl)
+    (define-key map (kbd "C-c C-n") 'kotlin-send-line)
+    (define-key map (kbd "C-c C-r") 'kotlin-send-region)
+    (define-key map (kbd "C-c C-c") 'kotlin-send-block)
+    (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
     (define-key map (kbd "<tab>") 'c-indent-line-or-region)
     map)
   "Keymap for kotlin-mode")
