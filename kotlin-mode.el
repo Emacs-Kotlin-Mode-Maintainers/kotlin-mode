@@ -54,16 +54,30 @@
   :type 'string
   :group 'kotlin)
 
+(defun kotlin-do-and-repl-focus (f &rest args)
+  (apply f args)
+  (pop-to-buffer kotlin-repl-buffer))
+
 (defun kotlin-send-region (start end)
   "Send current region to Kotlin interpreter."
   (interactive "r")
   (comint-send-region kotlin-repl-buffer start end)
   (comint-send-string kotlin-repl-buffer "\n"))
 
+(defun kotlin-send-region-and-focus (start end)
+  "Send current region to Kotlin interpreter and switch to it."
+  (interactive "r")
+  (kotlin-do-and-repl-focus 'kotlin-send-region start end))
+
 (defun kotlin-send-buffer ()
   "Send whole buffer to Kotlin interpreter."
   (interactive)
   (kotlin-send-region (point-min) (point-max)))
+
+(defun kotlin-send-buffer-and-focus ()
+  "Send whole buffer to Kotlin interpreter and switch to it."
+  (interactive)
+  (kotlin-do-and-repl-focus 'kotlin-send-buffer))
 
 (defun kotlin-send-block ()
   (interactive)
@@ -72,11 +86,21 @@
     (kotlin-send-region (region-beginning) (region-end))
     (goto-char p)))
 
+(defun kotlin-send-block-and-focus ()
+  "Send block to Kotlin interpreter and switch to it."
+  (interactive)
+  (kotlin-do-and-repl-focus 'kotlin-send-block))
+
 (defun kotlin-send-line ()
   (interactive)
   (kotlin-send-region
    (line-beginning-position)
    (line-end-position)))
+
+(defun kotlin-send-line-and-focus ()
+  "Send current line to Kotlin interpreter and switch to it."
+  (interactive)
+  (kotlin-do-and-repl-focus 'kotlin-send-line))
 
 (defun kotlin-repl ()
   "Launch a Kotlin REPL using `kotlin-command' as an inferior mode."
