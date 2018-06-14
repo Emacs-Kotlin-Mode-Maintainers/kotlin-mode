@@ -55,17 +55,18 @@
   :group 'kotlin)
 
 (defun kotlin-do-and-repl-focus (f &rest args)
+  "Call given function F with ARGS as arguments and switch to REPL."
   (apply f args)
   (pop-to-buffer kotlin-repl-buffer))
 
 (defun kotlin-send-region (start end)
-  "Send current region to Kotlin interpreter."
+  "Send current region (between START and END) to Kotlin interpreter."
   (interactive "r")
-  (comint-send-region kotlin-repl-buffer start end)
-  (comint-send-string kotlin-repl-buffer "\n"))
+  (comint-send-region (get-buffer-process kotlin-repl-buffer) start end)
+  (comint-send-string (get-buffer-process kotlin-repl-buffer) "\n"))
 
 (defun kotlin-send-region-and-focus (start end)
-  "Send current region to Kotlin interpreter and switch to it."
+  "Send current region (between START and END) to Kotlin interpreter and switch to it."
   (interactive "r")
   (kotlin-do-and-repl-focus 'kotlin-send-region start end))
 
@@ -80,6 +81,7 @@
   (kotlin-do-and-repl-focus 'kotlin-send-buffer))
 
 (defun kotlin-send-block ()
+  "Send block to Kotlin interpreter."
   (interactive)
   (let* ((p (point)))
     (mark-paragraph)
@@ -92,6 +94,7 @@
   (kotlin-do-and-repl-focus 'kotlin-send-block))
 
 (defun kotlin-send-line ()
+  "Send current line to Kotlin interpreter."
   (interactive)
   (kotlin-send-region
    (line-beginning-position)
@@ -130,7 +133,7 @@
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
     (define-key map (kbd "<tab>") 'c-indent-line-or-region)
     map)
-  "Keymap for kotlin-mode")
+  "Keymap for kotlin-mode.")
 
 (defvar kotlin-mode-syntax-table
   (let ((st (make-syntax-table)))
@@ -271,7 +274,7 @@
 
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
-  "Default highlighting expression for `kotlin-mode'")
+  "Default highlighting expression for `kotlin-mode'.")
 
 (defun kotlin-mode--new-font-lock-keywords ()
   '(
@@ -315,7 +318,7 @@
           (kotlin-mode--match-interpolation limit))))))
 
 (defun kotlin-mode--prev-line ()
-  "Moves up to the nearest non-empty line"
+  "Move up to the nearest non-empty line."
   (if (not (bobp))
       (progn
         (forward-line -1)
@@ -323,7 +326,7 @@
           (forward-line -1)))))
 
 (defun kotlin-mode--indent-line ()
-  "Indent current line as kotlin code"
+  "Indent current line as kotlin code."
   (interactive)
   (beginning-of-line)
   (if (bobp) ; 1.)
