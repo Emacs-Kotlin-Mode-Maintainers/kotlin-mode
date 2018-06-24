@@ -294,10 +294,12 @@
     (remove-text-properties start end '(kotlin-property--interpolation))
     (funcall
      (syntax-propertize-rules
-      ((let ((identifier '(any alnum " !%&()*+-./:<>?[]^_|~")))
+      ((let ((identifier '(or
+                           (and alpha (* alnum))
+                           (and "`" (+ (not (any "`\n"))) "`"))))
          (rx-to-string
-          `(or (group "${" (* ,identifier) "}")
-               (group "$" (+ ,identifier)))))
+          `(or (group "${" ,identifier "}")
+               (group "$" ,identifier))))
        (0 (ignore (kotlin-mode--syntax-propertize-interpolation)))))
      start end)))
 
