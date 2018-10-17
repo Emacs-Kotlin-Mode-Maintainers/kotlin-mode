@@ -711,3 +711,10 @@ class Test {
 
     }
 }
+
+fun itpl() {
+    print("$foo/bar");
+    print("$`weird$! identifier`bar");
+    print("${foo}bar");
+    print("${`weird$! identifier`}bar");
+}
