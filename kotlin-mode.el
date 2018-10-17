@@ -407,6 +407,7 @@
   (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
   (set (make-local-variable 'comment-end) "")
   (set (make-local-variable 'indent-line-function) 'kotlin-mode--indent-line)
+  (setq-local adaptive-fill-regexp comment-start-skip)
 
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table)
