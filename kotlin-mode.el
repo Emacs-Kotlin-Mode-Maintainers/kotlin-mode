@@ -214,7 +214,7 @@
 
     ;; Types
     (,(rx-to-string
-      `(and bow upper (group (* (or word "<" ">" "." "?" "!"))))
+      `(and bow upper (group (* (or word "<" ">" "." "?" "!" "*"))))
       t)
      0 font-lock-type-face)
 
