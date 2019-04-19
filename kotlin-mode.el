@@ -327,70 +327,79 @@
 (defun kotlin-mode--indent-line ()
   "Indent current line as kotlin code"
   (interactive)
-  (beginning-of-line)
-  (if (bobp) ; 1.)
-      (progn
-        (kotlin-mode--beginning-of-buffer-indent))
-    (let ((not-indented t) cur-indent)
-      (cond ((looking-at "^[ \t]*\\.") ; line starts with .
-             (save-excursion
-               (kotlin-mode--prev-line)
-               (cond ((looking-at "^[ \t]*\\.")
-                      (setq cur-indent (current-indentation)))
+  (let ((follow-indentation-p
+         (and (<= (line-beginning-position) (point))
+              (>= (+ (line-beginning-position)
+                     (current-indentation))
+                  (point)))))
+    (save-excursion
+      (beginning-of-line)
+      (if (bobp) ; 1.)
+          (progn
+            (kotlin-mode--beginning-of-buffer-indent))
+        (let ((not-indented t) cur-indent)
+          (cond ((looking-at "^[ \t]*\\.") ; line starts with .
+                 (save-excursion
+                   (kotlin-mode--prev-line)
+                   (cond ((looking-at "^[ \t]*\\.")
+                          (setq cur-indent (current-indentation)))
 
-                     (t
-                      (setq cur-indent (+ (current-indentation) (* 2 kotlin-tab-width)))))
-               (if (< cur-indent 0)
-                   (setq cur-indent 0))))
+                         (t
+                          (setq cur-indent (+ (current-indentation) (* 2 kotlin-tab-width)))))
+                   (if (< cur-indent 0)
+                       (setq cur-indent 0))))
 
-            ((looking-at "^[ \t]*}") ; line starts with }
-             (save-excursion
-               (kotlin-mode--prev-line)
-               (while (and (or (looking-at "^[ \t]*$") (looking-at "^[ \t]*\\.")) (not (bobp)))
-                 (kotlin-mode--prev-line))
-               (cond ((or (looking-at ".*{[ \t]*$") (looking-at ".*{.*->[ \t]*$"))
-                      (setq cur-indent (current-indentation)))
-                     (t
-                      (setq cur-indent (- (current-indentation) kotlin-tab-width)))))
-             (if (< cur-indent 0)
-                 (setq cur-indent 0)))
+                ((looking-at "^[ \t]*}") ; line starts with }
+                 (save-excursion
+                   (kotlin-mode--prev-line)
+                   (while (and (or (looking-at "^[ \t]*$") (looking-at "^[ \t]*\\.")) (not (bobp)))
+                     (kotlin-mode--prev-line))
+                   (cond ((or (looking-at ".*{[ \t]*$") (looking-at ".*{.*->[ \t]*$"))
+                          (setq cur-indent (current-indentation)))
+                         (t
+                          (setq cur-indent (- (current-indentation) kotlin-tab-width)))))
+                 (if (< cur-indent 0)
+                     (setq cur-indent 0)))
 
-            ((looking-at "^[ \t]*)") ; line starts with )
-             (save-excursion
-               (kotlin-mode--prev-line)
-               (setq cur-indent (- (current-indentation) kotlin-tab-width)))
-             (if (< cur-indent 0)
-                 (setq cur-indent 0)))
+                ((looking-at "^[ \t]*)") ; line starts with )
+                 (save-excursion
+                   (kotlin-mode--prev-line)
+                   (setq cur-indent (- (current-indentation) kotlin-tab-width)))
+                 (if (< cur-indent 0)
+                     (setq cur-indent 0)))
 
-            (t
-             (save-excursion
-               (while not-indented
-                 (kotlin-mode--prev-line)
-                 (cond ((looking-at ".*{[ \t]*$") ; line ends with {
-                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
-                        (setq not-indented nil))
+                (t
+                 (save-excursion
+                   (while not-indented
+                     (kotlin-mode--prev-line)
+                     (cond ((looking-at ".*{[ \t]*$") ; line ends with {
+                            (setq cur-indent (+ (current-indentation) kotlin-tab-width))
+                            (setq not-indented nil))
 
-                       ((looking-at "^[ \t]*}") ; line starts with }
-                        (setq cur-indent (current-indentation))
-                        (setq not-indented nil))
+                           ((looking-at "^[ \t]*}") ; line starts with }
+                            (setq cur-indent (current-indentation))
+                            (setq not-indented nil))
 
-                       ((looking-at ".*{.*->[ \t]*$") ; line ends with ->
-                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
-                        (setq not-indented nil))
+                           ((looking-at ".*{.*->[ \t]*$") ; line ends with ->
+                            (setq cur-indent (+ (current-indentation) kotlin-tab-width))
+                            (setq not-indented nil))
 
-                       ((looking-at ".*([ \t]*$") ; line ends with (
-                        (setq cur-indent (+ (current-indentation) kotlin-tab-width))
-                        (setq not-indented nil))
+                           ((looking-at ".*([ \t]*$") ; line ends with (
+                            (setq cur-indent (+ (current-indentation) kotlin-tab-width))
+                            (setq not-indented nil))
 
-                       ((looking-at "^[ \t]*).*$") ; line starts with )
-                        (setq cur-indent (current-indentation))
-                        (setq not-indented nil))
+                           ((looking-at "^[ \t]*).*$") ; line starts with )
+                            (setq cur-indent (current-indentation))
+                            (setq not-indented nil))
 
-                       ((bobp) ; 5.)
-                        (setq not-indented nil)))))))
-      (if cur-indent
-          (indent-line-to cur-indent)
-        (indent-line-to 0)))))
+                           ((bobp) ; 5.)
+                            (setq not-indented nil)))))))
+          (if cur-indent
+              (indent-line-to cur-indent)
+            (indent-line-to 0)))))
+
+    (when follow-indentation-p
+      (back-to-indentation))))
 
 
 (defun kotlin-mode--beginning-of-buffer-indent ()
