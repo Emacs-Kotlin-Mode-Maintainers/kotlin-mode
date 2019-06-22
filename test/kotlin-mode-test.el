@@ -1,4 +1,4 @@
-(load-file "kotlin-mode.el")
+(load-file "../kotlin-mode.el")
 
 ;(require 'kotlin-mode)
 
@@ -44,7 +44,7 @@ return a + b
 
       (kotlin-mode--indent-line)
       (should (equal (buffer-string) "fun sum(a: Int, b: Int): Int {
-	return a + b
+    return a + b
 }")))))
 
 ;; (ert-deftest kotlin-mode--chained-methods ()
