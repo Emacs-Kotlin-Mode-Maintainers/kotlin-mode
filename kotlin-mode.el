@@ -128,7 +128,6 @@
     (define-key map (kbd "C-c C-r") 'kotlin-send-region)
     (define-key map (kbd "C-c C-c") 'kotlin-send-block)
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
-    (define-key map (kbd "<tab>") 'c-indent-line-or-region)
     map)
   "Keymap for kotlin-mode")
 
