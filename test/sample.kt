@@ -105,14 +105,14 @@ if (text in names) // names.contains(text) is called
 print("Yes")
 
 names.filter { it.startsWith("A") }
-        .sortedBy { it }
-        .map { it.toUpperCase() }
-        .forEach { print(it) }
+    .sortedBy { it }
+    .map { it.toUpperCase() }
+    .forEach { print(it) }
 
 fun f() {
     things.f()
-            .g()
-            .h()
+        .g()
+        .h()
 }
 
 data class Customer(val name: String, val email: String)
@@ -191,18 +191,19 @@ class Turtle {
 }
 
 val myTurtle = Turtle()
-with(myTurtle) { //draw a 100 pix square
-penDown()
-for(i in 1..4) {
-    forward(100.0)
-    turn(90.0)
-}
-penUp()
+with(myTurtle) {
+    //draw a 100 pix square
+    penDown()
+    for(i in 1..4) {
+        forward(100.0)
+        turn(90.0)
+    }
+    penUp()
 }
 
 val stream = Files.newInputStream(Paths.get("/some/file.txt"))
-stream.buffered().reader().use { reader ->
-    println(reader.readText())
+stream.buffered().reader().use {
+    reader -> println(reader.readText())
 }
 
 inline fun <reified T: Any> Gson.fromJson(json): T = this.fromJson(json, T::class.java)
@@ -718,3 +719,4 @@ fun itpl() {
     print("${foo}bar");
     print("${`weird$! identifier`}bar");
 }
+

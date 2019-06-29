@@ -331,34 +331,43 @@
   "Return whether the current line ends with the given pattern"
   (looking-at (format ".*%s[ \t]*$" pattern)))
 
-(defun kotlin-mode--count-brackets ()
-  "Count the brackets on the current line, counting
-   +1 for open-brackets, -1 for close-brackets"
-  (let ((net-count 0))
-    (save-excursion
-      (while (not (eolp))
-        (cond ((looking-at "\\s\(")
-               (incf net-count))
-              ((looking-at "\\s\)")
-               (decf net-count)))
-        (forward-char 1)))
-    net-count))
+(defun kotlin-mode--update-bracket-count (net-count)
+  "Count the brackets on the current line, incrementing the count
+   +1 for open-brackets, -1 for close-brackets.
+   Return as soon as the overall count exceeds zero."
+  (save-excursion
+    (end-of-line)
+    (while (and (<= net-count 0) (not (bolp)))
+      (backward-char)
+      (cond ((looking-at "\\s\(")
+             (incf net-count))
+            ((looking-at "\\s\)")
+             (decf net-count)))))
+  net-count)
+
+(defun kotlin-mode--base-indentation ()
+  "Return the indentation level of the current line based on brackets only,
+   i.e. ignoring 'continuation' indentation."
+  (if (kotlin-mode--line-begins "\\.")
+      (- (current-indentation) kotlin-tab-width)
+    (current-indentation)))
 
 (defun kotlin-mode--post-bracket-indent ()
   "Return the indentation at the first non-whitespace character
    following the last un-closed open-bracket on the line.
-   If no non-whitespace character follows, return nil."
+   If no non-whitespace character follows, return the default
+   indentation level."
   (let ((net-count 0) position)
     (save-excursion
       (end-of-line)
       (while (and (<= net-count 0) (not (bolp)))
+        (backward-char)
         (cond ((looking-at "\\s\(")
                (incf net-count))
               ((looking-at "\\s\)")
-               (decf net-count)))
-        (backward-char))
+               (decf net-count))))
       (if (kotlin-mode--line-ends "\\s\(")
-          nil
+          (+ (kotlin-mode--base-indentation) kotlin-tab-width)
         (forward-char)
         (skip-syntax-forward "(")
         (skip-syntax-forward "-")
@@ -378,31 +387,35 @@
         (kotlin-mode--beginning-of-buffer-indent))
     (let ((not-indented t) cur-indent (net-bracket-count 0))
       ;; Count any close-bracket at the start of the current line
-      (if (kotlin-mode--line-begins "\\s\)")
-          (decf net-bracket-count))
+      (save-excursion
+        (skip-syntax-forward "-")
+        (decf net-bracket-count (skip-syntax-forward ")")))
       (save-excursion
         (while not-indented
           ;; Count-up the brackets in the previous line
           (kotlin-mode--prev-line)
-          (incf net-bracket-count (kotlin-mode--count-brackets))
+          (setq net-bracket-count
+                (kotlin-mode--update-bracket-count net-bracket-count))
 
           (cond
            ;; If the net-bracket-count is zero, use this indentation
            ((= net-bracket-count 0)
-            (setq cur-indent (current-indentation))
+            (setq cur-indent (kotlin-mode--base-indentation))
             (setq not-indented nil))
            ;; If we've now counted more open-brackets than close-brackets,
-           ;; use the indentation of the content immediately following the final open-bracket.
-           ;; But if the line *ends* with an open-bracket, apply the default indentation.
+           ;; use the indentation of the content immediately following the
+           ;; final open-bracket.
+           ;; But if the line *ends* with an open-bracket, apply the default
+           ;; indentation.
            ((> net-bracket-count 0)
-            (let ((post-bracket-indent (kotlin-mode--post-bracket-indent)))
-              (if post-bracket-indent
-                  (setq cur-indent post-bracket-indent)
-                (setq cur-indent (+ (current-indentation) kotlin-tab-width))))
+            (setq cur-indent (kotlin-mode--post-bracket-indent))
             (setq not-indented nil))
 
            ((bobp)
             (setq not-indented nil)))))
+      ;; Add extra indentation if the line starts with a period
+      (if (kotlin-mode--line-begins "\\.")
+          (incf cur-indent kotlin-tab-width))
 
       (if cur-indent
           (indent-line-to cur-indent)
