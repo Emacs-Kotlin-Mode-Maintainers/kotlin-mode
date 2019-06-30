@@ -331,6 +331,10 @@
   "Return whether the current line ends with the given pattern"
   (looking-at (format ".*%s[ \t]*$" pattern)))
 
+(defun kotlin-mode--line-contains (pattern)
+  "Return whether the current line contains the given pattern"
+  (looking-at (format ".*%s.*" pattern)))
+
 (defun kotlin-mode--update-bracket-count (net-count)
   "Count the brackets on the current line, incrementing the count
    +1 for open-brackets, -1 for close-brackets.
@@ -348,9 +352,12 @@
 (defun kotlin-mode--base-indentation ()
   "Return the indentation level of the current line based on brackets only,
    i.e. ignoring 'continuation' indentation."
-  (if (kotlin-mode--line-begins "\\.")
-      (- (current-indentation) kotlin-tab-width)
-    (current-indentation)))
+  (cond ((kotlin-mode--line-begins "\\.")
+         (- (current-indentation) kotlin-tab-width))
+        ((kotlin-mode--in-comment-block)
+         (- (current-indentation) 1))
+        (t
+         (current-indentation))))
 
 (defun kotlin-mode--post-bracket-indent ()
   "Return the indentation at the first non-whitespace character
@@ -373,6 +380,29 @@
         (skip-syntax-forward "-")
         (setq position (point))
         (- position (re-search-backward "^"))))))
+
+(defun kotlin-mode--in-comment-block ()
+  "Return whether the cursor is within a standard comment block structure
+   of the following format:
+   /**
+    * Description here
+    */ "
+  (save-excursion
+    (let ((in-comment-block nil)
+          (keep-going (kotlin-mode--line-begins "\\*")))
+      (while keep-going
+        (kotlin-mode--prev-line)
+        (cond
+         ((bobp)
+          (setq keep-going nil))
+         ((kotlin-mode--line-contains "\\*/")
+          (setq keep-going nil))
+         ((kotlin-mode--line-begins "/\\*")
+          (setq keep-going nil)
+          (setq in-comment-block t))
+         ((not (kotlin-mode--line-begins "\\*"))
+          (setq keep-going nil))))
+      in-comment-block)))
 
 (defun kotlin-mode--indent-line ()
   "Indent current line as kotlin code.
@@ -413,9 +443,12 @@
 
            ((bobp)
             (setq not-indented nil)))))
-      ;; Add extra indentation if the line starts with a period
-      (if (kotlin-mode--line-begins "\\.")
-          (incf cur-indent kotlin-tab-width))
+      (cond ((kotlin-mode--line-begins "\\.")
+             ;; Add extra indentation if the line starts with a period
+             (incf cur-indent kotlin-tab-width))
+            ((kotlin-mode--in-comment-block)
+             ;; Add one space of extra indentation if inside a comment block
+             (incf cur-indent)))
 
       (if cur-indent
           (indent-line-to cur-indent)

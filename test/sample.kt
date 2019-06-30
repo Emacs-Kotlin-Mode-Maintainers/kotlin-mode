@@ -6,9 +6,9 @@ import bar.Bar as bBar
 
 // a single line comment
 
-/*
-* a multiline comment
-*/
+/**
+ * a multiline comment
+ */
 
 fun sum(a: Int, b: Int): Int {
     return a + b
