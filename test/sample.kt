@@ -10,6 +10,11 @@ import bar.Bar as bBar
  * a multiline comment
  */
 
+/****************************************************************
+ Multiline comment
+ without leading "*"
+****************************************************************/
+
 fun sum(a: Int, b: Int): Int {
     return a + b
 }
@@ -21,7 +26,16 @@ fun printSum(a: Int, b: Int): Unit {
 }
 
 fun printSum(a: Int, b: Int) {
-    print(a + b)
+    val veryLongResultVariableName: Int
+        = (a + b)
+    print(veryLongResultVariableName)
+}
+
+fun functionMultiLineArgs(first: Int,
+                          second: Int,
+                          third: Int,
+                          fourth: Int) {
+    print("(${first}, ${second}, ${third}, ${fourth})")
 }
 
 val a: Int = 1
@@ -288,7 +302,9 @@ class Derived() : Base() {
     override fun v() {}
 }
 
-open class AnotherDerived() : Base() {
+open class AnotherDerived()
+    : Base() {
+
     final override fun v() {}
 }
 
@@ -564,14 +580,15 @@ enum class ProtocolState {
     abstract fun signal(): ProtocolState
 }
 
-window.addMouseListener(object : MouseAdapter() {
-    override fun mouseClicked(e: MouseEvent) {
-        // ...
-    }
+window.addMouseListener(
+    object : MouseAdapter() {
+        override fun mouseClicked(e: MouseEvent) {
+            // ...
+        }
 
-    override fun mouseEntered(e: MouseEvent) {
-        // ...
-    }
+        override fun mouseEntered(e: MouseEvent) {
+            // ...
+        }
 })
 
 val adHoc = object {
@@ -584,14 +601,15 @@ fun countClicks(window: JComponent) {
     var clickCount = 0
     var enterCount = 0
 
-    window.addMouseListener(object : MouseAdapter() {
-        override fun mouseClicked(e: MouseEvent) {
-            clickCount++
-        }
+    window.addMouseListener(
+        object : MouseAdapter() {
+            override fun mouseClicked(e: MouseEvent) {
+                clickCount++
+            }
 
-        override fun mouseEntered(e: MouseEvent) {
-            enterCount++
-        }
+            override fun mouseEntered(e: MouseEvent) {
+                enterCount++
+            }
     })
     // ...
 }
@@ -635,7 +653,7 @@ fun <T> asList(vararg ts: T): List<T> {
 }
 
 tailrec fun findFixPoint(x: Double = 1.0): Double
-= if (x == Math.cos(x)) x else findFixPoint(Math.cos(x))
+    = if (x == Math.cos(x)) x else findFixPoint(Math.cos(x))
 
 fun <T> lock(lock: Lock, body: () -> T): T {
     lock.lock()
