@@ -343,7 +343,11 @@
 
 (defun kotlin-mode--line-continuation()
   "Return whether this line continues a statement in the previous line"
-  (kotlin-mode--line-begins "[\.=:]"))
+  (or
+   (kotlin-mode--line-begins "\\([\.=:]\\|->\\)")
+   (save-excursion
+     (kotlin-mode--prev-line)
+     (kotlin-mode--line-ends "\\([=:]\\|->\\)"))))
 
 (defun kotlin-mode--base-indentation ()
   "Return the indentation level of the current line based on brackets only,
@@ -367,7 +371,11 @@
    (finished :initarg :finished
              :initform nil
              :type boolean
-             :documentation "Whether the counting has finished."))
+             :documentation "Whether the counting has finished.")
+   (use-base :initarg :use-base
+             :initform t
+             :type boolean
+             :documentation "Whether to factor out extra indentations."))
   "A class for counting brackets to find the appropriate bracket-based indent.
    The logic here involves keeping track of the net-bracket-count,
    defined as the number of open-brackets minus the number of close-brackets.
@@ -390,7 +398,9 @@
      ;; If the net-bracket-count is zero, use this indentation
      ((= (oref counter count) 0)
       (oset counter finished t)
-      (add-indent counter (kotlin-mode--base-indentation)))
+      (if (oref counter use-base)
+          (add-indent counter (kotlin-mode--base-indentation))
+        (add-indent counter (current-indentation))))
      ;; If we've now counted more open-brackets than close-brackets,
      ;; use the indentation of the content immediately following the
      ;; final open-bracket.
@@ -406,6 +416,8 @@
 (cl-defmethod count-leading-close-brackets
     ((counter kotlin-mode--bracket-counter))
   "Count any close-bracket at the start of the current line."
+  (if (looking-at "\\s\)")
+      (oset counter use-base nil))
   (subtract-count counter (skip-syntax-forward ")")))
 
 (cl-defmethod count-trailing-open-brackets
@@ -413,8 +425,9 @@
   "If the bracket count is at zero, and there are open-brackets at the end
    of the line, do not count them, but add a single indentation level."
   (if (= (oref counter count) 0)
-      (if (not (= (skip-syntax-backward "(") 0))
-          (add-indent counter kotlin-tab-width))))
+      (cond ((not (= (skip-syntax-backward "(") 0))
+             (add-indent counter kotlin-tab-width)
+             (oset counter use-base nil)))))
 
 (cl-defmethod add-count ((counter kotlin-mode--bracket-counter) val)
   (oset counter count (+ (oref counter count) val)))
@@ -456,7 +469,6 @@
   (beginning-of-line)
   (if (bobp)
       (kotlin-mode--beginning-of-buffer-indent)
-    (kotlin-mode--reset-indentation)
     (let ((cur-indent 0))
       ;; Find bracket-based indentation first
       (let ((bracket-counter (kotlin-mode--bracket-counter)))

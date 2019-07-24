@@ -303,8 +303,8 @@ class Derived() : Base() {
 }
 
 open class AnotherDerived()
-    : Base() {
-
+    : Base()
+{
     final override fun v() {}
 }
 
@@ -327,7 +327,7 @@ interface B {
 }
 
 class C() : A(), B {
-    // The compiler requires f() to be overridden:
+    // The compiler requires f() to be overridden
     override fun f() {
         super<A>.f() // call to A.f()
         super<B>.f() // call to B.f()
@@ -726,8 +726,16 @@ inline fun <reified T> TreeNode.findParentOfType(): T? {
 }
 
 class Test {
-    fun f() {
-
+    fun tryAdd(a: Int?, b: Int?) : Int? {
+        var result: Int? = null
+        a?.let {
+            lhs ->
+                b?.let {
+                    rhs ->
+                        result = lhs + rhs
+                }
+        }
+        return result
     }
 }
 
