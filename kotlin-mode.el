@@ -172,7 +172,7 @@
     "when" "is" "in" "as" "return"))
 
 (defconst kotlin-mode--context-variables-keywords
-  '("this" "super"))
+  '("field" "it" "this" "super"))
 
 (defvar kotlin-mode--keywords
   (append kotlin-mode--misc-keywords
@@ -192,7 +192,7 @@
     "annotation" "internal" "const" "in" "out")) ;; "in" "out"
 
 (defconst kotlin-mode--property-keywords
-  '("by")) ;; "by" "get" "set"
+  '("by" "get" "set")) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
@@ -256,11 +256,11 @@
 
     ;; Properties
     ;; by/get/set are valid identifiers being used as variable
-    ;; TODO: Highlight keywords in the property declaration statement
-    ;; (,(rx-to-string
-    ;;    `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
-    ;;    t)
-    ;;  1 font-lock-keyword-face)
+    ;; TODO: Highlight only within the property declaration statement
+    (,(rx-to-string
+       `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
+       t)
+     1 font-lock-keyword-face)
 
     ;; Constructor/Initializer blocks
     (,(rx-to-string
@@ -344,7 +344,7 @@
 (defun kotlin-mode--line-continuation()
   "Return whether this line continues a statement in the previous line"
   (or
-   (kotlin-mode--line-begins "\\([\.=:]\\|->\\)")
+   (kotlin-mode--line-begins "\\([\.=:]\\|->\\|[sg]et\\b\\)")
    (save-excursion
      (kotlin-mode--prev-line)
      (kotlin-mode--line-ends "\\([=:]\\|->\\)"))))

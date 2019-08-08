@@ -356,10 +356,10 @@ fun eval(expr: Expr): Double = when(expr) {
 }
 
 var stringRepresentation: String
-get() = this.toString()
-set(value) {
-    setDataFromString(value) // parses the string and assigns values to other properties
-}
+    get() = this.toString()
+    set(value) {
+        setDataFromString(value) // parses the string and assigns values to other properties
+    }
 
 var setterVisibility: String = "abc"
 private set // the setter is private and has the default implementation
@@ -368,13 +368,13 @@ var setterWithAnnotation: Any? = null
 @Inject set // annotate the setter with Inject
 
 var counter = 0 // the initializer value is written directly to the backing field
-set(value) {
-    if (value >= 0)
-    field = value
-}
+    set(value) {
+        if (value >= 0)
+        field = value
+    }
 
 val isEmpty: Boolean
-get() = this.size == 0
+    get() = this.size == 0
 
 const val SUBSYSTEM_DEPRECATED: String = "This subsystem is deprecated"
 
@@ -409,7 +409,7 @@ interface MyInterface {
     val property: Int // abstract
 
     val propertyWithImplementation: String
-    get() = "foo"
+        get() = "foo"
 
     fun foo() {
         print(property)
@@ -479,7 +479,7 @@ fun Any?.toString(): String {
 }
 
 val <T> List<T>.lastIndex: Int
-get() = size - 1
+    get() = size - 1
 
 class MyClass {
     companion object { }  // will be called "Companion"
