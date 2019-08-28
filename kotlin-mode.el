@@ -28,6 +28,8 @@
 (require 'comint)
 (require 'rx)
 (require 'cc-cmds)
+(require 'cl)
+(require 'eieio)
 
 (defgroup kotlin nil
   "A Kotlin major mode."

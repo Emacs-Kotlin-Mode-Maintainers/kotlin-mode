@@ -1,4 +1,8 @@
-(load-file "../kotlin-mode.el")
+;; Tests assume a tab is represented by 4 spaces
+(setq-default indent-tabs-mode nil)
+(setq-default tab-width 4)
+
+(load-file "kotlin-mode.el")
 
 ;(require 'kotlin-mode)
 
@@ -81,7 +85,7 @@ return a + b
 
 (ert-deftest kotlin-mode--sample-test ()
   (with-temp-buffer
-      (insert-file-contents "sample.kt")
+      (insert-file-contents "test/sample.kt")
       (beginning-of-buffer)
       (while (not (eobp))
         (let ((expected-line (thing-at-point 'line)))
