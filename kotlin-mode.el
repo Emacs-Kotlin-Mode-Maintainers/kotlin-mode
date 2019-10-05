@@ -82,11 +82,11 @@
   (kotlin-do-and-repl-focus 'kotlin-send-buffer))
 
 (defun kotlin-send-block ()
+  "Send block to Kotlin interpreter."
   (interactive)
-  (let* ((p (point)))
+  (save-mark-and-excursion
     (mark-paragraph)
-    (kotlin-send-region (region-beginning) (region-end))
-    (goto-char p)))
+    (kotlin-send-region (region-beginning) (region-end))))
 
 (defun kotlin-send-block-and-focus ()
   "Send block to Kotlin interpreter and switch to it."
