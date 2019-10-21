@@ -346,7 +346,7 @@
 (defun kotlin-mode--line-continuation()
   "Return whether this line continues a statement in the previous line"
   (or
-   (kotlin-mode--line-begins "\\([\.=:]\\|->\\|[sg]et\\b\\)")
+   (kotlin-mode--line-begins "\\([.=:]\\|->\\|[sg]et\\b\\)")
    (save-excursion
      (kotlin-mode--prev-line)
      (kotlin-mode--line-ends "\\([=:]\\|->\\)"))))
@@ -384,7 +384,8 @@
    We scroll backwards until the net-bracket-count is zero, and this point
    determines the desired indentation level for the current line.")
 
-(cl-defmethod count-to-line-start ((counter kotlin-mode--bracket-counter))
+(cl-defmethod kotlin-mode--count-to-line-start
+  ((counter kotlin-mode--bracket-counter))
   "Count the brackets on the current line, starting from the cursor
    position, and working backward, incrementing the count
    +1 for open-brackets, -1 for close-brackets.
@@ -392,17 +393,17 @@
   (save-excursion
     (while (and (<= (oref counter count) 0) (not (bolp)))
       (backward-char)
-      (cond ((looking-at "\\s\(")
-             (oset counter count (+ (oref counter count) 1)))
-            ((looking-at "\\s\)")
-             (oset counter count (- (oref counter count) 1)))))
+      (cond ((looking-at "\\s(")
+             (cl-incf (oref counter count)))
+            ((looking-at "\\s)")
+             (cl-decf (oref counter count)))))
     (cond
      ;; If the net-bracket-count is zero, use this indentation
      ((= (oref counter count) 0)
       (oset counter finished t)
       (if (oref counter use-base)
-          (add-indent counter (kotlin-mode--base-indentation))
-        (add-indent counter (current-indentation))))
+          (kotlin-mode--add-indent counter (kotlin-mode--base-indentation))
+        (kotlin-mode--add-indent counter (current-indentation))))
      ;; If we've now counted more open-brackets than close-brackets,
      ;; use the indentation of the content immediately following the
      ;; final open-bracket.
@@ -413,36 +414,39 @@
       (skip-syntax-forward "-")
       (let (position)
         (setq position (point))
-        (add-indent counter (- position (re-search-backward "^"))))))))
+        (kotlin-mode--add-indent counter
+                                 (- position (re-search-backward "^"))))))))
 
-(cl-defmethod count-leading-close-brackets
+(cl-defmethod kotlin-mode--count-leading-close-brackets
     ((counter kotlin-mode--bracket-counter))
   "Count any close-bracket at the start of the current line."
-  (if (looking-at "\\s\)")
+  (if (looking-at "\\s)")
       (oset counter use-base nil))
-  (subtract-count counter (skip-syntax-forward ")")))
+  (kotlin-mode--subtract-count counter (skip-syntax-forward ")")))
 
-(cl-defmethod count-trailing-open-brackets
+(cl-defmethod kotlin-mode--count-trailing-open-brackets
     ((counter kotlin-mode--bracket-counter))
   "If the bracket count is at zero, and there are open-brackets at the end
    of the line, do not count them, but add a single indentation level."
   (if (= (oref counter count) 0)
       (cond ((not (= (skip-syntax-backward "(") 0))
-             (add-indent counter kotlin-tab-width)
+             (kotlin-mode--add-indent counter kotlin-tab-width)
              (oset counter use-base nil)))))
 
-(cl-defmethod add-count ((counter kotlin-mode--bracket-counter) val)
-  (oset counter count (+ (oref counter count) val)))
+(cl-defmethod kotlin-mode--add-count
+  ((counter kotlin-mode--bracket-counter) val)
+  (cl-incf (oref counter count) val))
 
-(cl-defmethod subtract-count ((counter kotlin-mode--bracket-counter) val)
-  (oset counter count (- (oref counter count) val)))
+(cl-defmethod kotlin-mode--subtract-count
+  ((counter kotlin-mode--bracket-counter) val)
+  (cl-decf (oref counter count) val))
 
-(cl-defmethod add-indent ((counter kotlin-mode--bracket-counter) val)
-  (oset counter indent (+ (oref counter indent) val)))
+(cl-defmethod kotlin-mode--add-indent
+  ((counter kotlin-mode--bracket-counter) val)
+  (cl-incf (oref counter indent) val))
 
-(cl-defmethod finished ((counter kotlin-mode--bracket-counter))
+(cl-defmethod kotlin-mode--finished ((counter kotlin-mode--bracket-counter))
   (oref counter finished))
-
 
 (defun kotlin-mode--in-comment-block ()
   "Return whether the cursor is within a standard comment block structure
@@ -476,23 +480,23 @@
       (let ((bracket-counter (kotlin-mode--bracket-counter)))
         (save-excursion
           (skip-syntax-forward "-")
-          (count-leading-close-brackets bracket-counter))
+          (kotlin-mode--count-leading-close-brackets bracket-counter))
         (save-excursion
           (progn (kotlin-mode--prev-line) (end-of-line))
-          (count-trailing-open-brackets bracket-counter)
-          (count-to-line-start bracket-counter)
-          (while (and (not (finished bracket-counter)) (not (bobp)))
+          (kotlin-mode--count-trailing-open-brackets bracket-counter)
+          (kotlin-mode--count-to-line-start bracket-counter)
+          (while (and (not (kotlin-mode--finished bracket-counter))
+                      (not (bobp)))
             (progn (kotlin-mode--prev-line) (end-of-line))
-            (count-to-line-start bracket-counter)
-            )
-          (incf cur-indent (oref bracket-counter indent))))
+            (kotlin-mode--count-to-line-start bracket-counter))
+          (cl-incf cur-indent (oref bracket-counter indent))))
 
       (cond ((kotlin-mode--line-continuation)
              ;; Add extra indentation if the line continues the previous one
-             (incf cur-indent kotlin-tab-width))
+             (cl-incf cur-indent kotlin-tab-width))
             ((kotlin-mode--in-comment-block)
              ;; Add one space of extra indentation if inside a comment block
-             (incf cur-indent)))
+             (cl-incf cur-indent)))
 
       (if cur-indent
           (indent-line-to cur-indent)
