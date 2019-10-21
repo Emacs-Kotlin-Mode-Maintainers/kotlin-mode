@@ -138,6 +138,8 @@
 
     ;; Strings
     (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?\' "\"" st)
+    (modify-syntax-entry ?` "\"" st)
 
     ;; `_' as being a valid part of a word
     (modify-syntax-entry ?_ "w" st)
@@ -155,7 +157,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
+  '("sealed" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -176,13 +178,17 @@
 (defconst kotlin-mode--context-variables-keywords
   '("field" "it" "this" "super"))
 
+(defconst kotlin-mode--generic-type-parameter-keywords
+  '("where"))
+
 (defvar kotlin-mode--keywords
   (append kotlin-mode--misc-keywords
           kotlin-mode--type-decl-keywords
           kotlin-mode--fun-decl-keywords
           kotlin-mode--val-decl-keywords
           kotlin-mode--statement-keywords
-          kotlin-mode--context-variables-keywords)
+          kotlin-mode--context-variables-keywords
+          kotlin-mode--generic-type-parameter-keywords)
   "Keywords used in Kotlin language.")
 
 (defconst kotlin-mode--constants-keywords
@@ -191,7 +197,9 @@
 (defconst kotlin-mode--modifier-keywords
   '("open" "private" "protected" "public" "lateinit"
     "override" "abstract" "final" "companion"
-    "annotation" "internal" "const" "in" "out")) ;; "in" "out"
+    "annotation" "internal" "const" "in" "out"
+    "actual" "expect" "crossinline" "inline" "noinline" "external"
+    "infix" "operator" "reified" "suspend" "tailrec" "vararg"))
 
 (defconst kotlin-mode--property-keywords
   '("by" "get" "set")) ;; "by" "get" "set"
@@ -199,11 +207,18 @@
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
 
+(defconst kotlin-mode--annotation-use-site-target-keywords
+  '("delegate" "field" "file" "get" "param" "property" "receiver" "set"
+    "setparam"))
+
+(defconst kotlin-mode--type-keywords
+  '("dynamic"))
+
 (defvar kotlin-mode--font-lock-keywords
   `(;; Keywords
     (,(rx-to-string
-     `(and bow (group (or ,@kotlin-mode--keywords)) eow)
-     t)
+       `(and bow (group (or ,@kotlin-mode--keywords)) eow)
+       t)
      1 font-lock-keyword-face)
 
     ;; Package names
@@ -215,15 +230,20 @@
 
     ;; Types
     (,(rx-to-string
-      `(and bow upper (group (* (or word "<" ">" "." "?" "!" "*"))))
-      t)
+       `(and bow upper (group (* (or word "<" ">" "." "?" "!" "*"))))
+       t)
+     0 font-lock-type-face)
+
+    (,(rx-to-string
+       `(and bow (or ,@kotlin-mode--type-keywords) eow)
+       t)
      0 font-lock-type-face)
 
     ;; Classes/Enums
     (,(rx-to-string
-      `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
-            (group (+ word)) eow)
-      t)
+       `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
+             (group (+ word)) eow)
+       t)
      1 font-lock-type-face)
 
     ;; Constants
@@ -270,14 +290,23 @@
        t)
      1 font-lock-keyword-face)
 
+    ;; Annotation use-site targets
+    (,(rx-to-string
+       `(and "@"
+             (group (or ,@kotlin-mode--annotation-use-site-target-keywords))
+             eow)
+       t)
+     1 font-lock-keyword-face)
+
+    ;; Labels
+    (,(rx-to-string
+       `(and bow (group (+ word)) "@")
+       t)
+     1 font-lock-constant-face)
+
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
-
-(defun kotlin-mode--new-font-lock-keywords ()
-  '(
-    ("package\\|import" . font-lock-keyword-face)
-    ))
 
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
