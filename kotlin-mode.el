@@ -308,11 +308,6 @@
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
 
-(defun kotlin-mode--new-font-lock-keywords ()
-  '(
-    ("package\\|import" . font-lock-keyword-face)
-    ))
-
 (defun kotlin-mode--syntax-propertize-interpolation ()
   (let* ((pos (match-beginning 0))
          (context (save-excursion
