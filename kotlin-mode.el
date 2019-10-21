@@ -138,6 +138,8 @@
 
     ;; Strings
     (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?\' "\"" st)
+    (modify-syntax-entry ?` "\"" st)
 
     ;; `_' as being a valid part of a word
     (modify-syntax-entry ?_ "w" st)
