@@ -5,7 +5,19 @@ before_install:
   - evm install $EVM_EMACS --use --skip
   - cask
 env:
+  # https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode/issues/46
+  #- EVM_EMACS=emacs-24.1-travis
+  #- EVM_EMACS=emacs-24.2-travis
+  #- EVM_EMACS=emacs-24.3-travis
+  #- EVM_EMACS=emacs-24.4-travis
+  #- EVM_EMACS=emacs-24.5-travis
   - EVM_EMACS=emacs-25.1-travis
+  - EVM_EMACS=emacs-25.2-travis
+  - EVM_EMACS=emacs-25.3-travis
+  # https://github.com/cask/cask/issues/471
+  #- EVM_EMACS=emacs-26.1-travis
+  #- EVM_EMACS=emacs-26.2-travis
+  #- EVM_EMACS=emacs-26.3-travis
   - EVM_EMACS=emacs-git-snapshot-travis
 script:
   - emacs --version
