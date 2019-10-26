@@ -2,9 +2,7 @@
 (setq-default indent-tabs-mode nil)
 (setq-default tab-width 4)
 
-(load-file "kotlin-mode.el")
-
-;(require 'kotlin-mode)
+(require 'kotlin-mode)
 
 (ert-deftest kotlin-mode--top-level-indent-test ()
   (with-temp-buffer
