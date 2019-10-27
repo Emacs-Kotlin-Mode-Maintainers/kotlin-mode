@@ -31,6 +31,8 @@
 (require 'cl)
 (require 'eieio)
 
+(require 'kotlin-mode-lexer)
+
 (defgroup kotlin nil
   "A Kotlin major mode."
   :group 'languages)
@@ -308,36 +310,12 @@
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
 
-(defun kotlin-mode--syntax-propertize-interpolation ()
-  (let* ((pos (match-beginning 0))
-         (context (save-excursion
-                    (save-match-data (syntax-ppss pos)))))
-    (when (nth 3 context)
-      (put-text-property pos
-                         (1+ pos)
-                         'kotlin-property--interpolation
-                         (match-data)))))
-
-(defun kotlin-mode--syntax-propertize-function (start end)
-  (let ((case-fold-search))
-    (goto-char start)
-    (remove-text-properties start end '(kotlin-property--interpolation))
-    (funcall
-     (syntax-propertize-rules
-      ((let ((identifier '(or
-                           (and alpha (* alnum))
-                           (and "`" (+ (not (any "`\n"))) "`"))))
-         (rx-to-string
-          `(or (group "${" ,identifier "}")
-               (group "$" ,identifier))))
-       (0 (ignore (kotlin-mode--syntax-propertize-interpolation)))))
-     start end)))
-
 (defun kotlin-mode--match-interpolation (limit)
-  (let ((pos (next-single-char-property-change (point)
-                                               'kotlin-property--interpolation
-                                               nil
-                                               limit)))
+  (let ((pos (next-single-char-property-change
+              (point)
+              'kotlin-property--interpolation
+              nil
+              limit)))
     (when (and pos (> pos (point)))
       (goto-char pos)
       (let ((value (get-text-property pos 'kotlin-property--interpolation)))
@@ -540,7 +518,11 @@
   "Major mode for editing Kotlin."
 
   (setq font-lock-defaults '((kotlin-mode--font-lock-keywords) nil nil))
-  (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
+  (setq-local parse-sexp-lookup-properties t)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'kotlin-mode--syntax-propertize-extend-region
+            nil t)
+  (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize)
   (set (make-local-variable 'comment-start) "//")
   (set (make-local-variable 'comment-padding) 1)
   (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
