@@ -9,7 +9,7 @@ import foo.Bar
 import bar.Bar as bBar
 "))
       (insert text)
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (kotlin-mode)
       (setq-local indent-tabs-mode nil)
       (setq-local tab-width 4)
@@ -19,19 +19,19 @@ import bar.Bar as bBar
 
       (should (equal text (buffer-string)))
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
       (should (equal text (buffer-string)))
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
       (should (equal text (buffer-string)))
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
       (should (equal text (buffer-string)))
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
       (should (equal text (buffer-string))))))
 
@@ -42,12 +42,12 @@ return a + b
 }"))
 
       (insert text)
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (kotlin-mode)
       (setq-local indent-tabs-mode nil)
       (setq-local tab-width 4)
       (setq-local kotlin-tab-width 4)
-      (next-line)
+      (forward-line)
 
       (kotlin-mode--indent-line)
       (should (equal (buffer-string) "fun sum(a: Int, b: Int): Int {
@@ -62,7 +62,7 @@ return a + b
 .forEach { print(it) }"))
 
       (insert text)
-      (beginning-of-buffer)
+      (goto-char (point-min))
       (kotlin-mode)
       (setq-local indent-tabs-mode nil)
       (setq-local tab-width 4)
@@ -70,13 +70,13 @@ return a + b
 
       (kotlin-mode--indent-line)
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
 
-      (next-line)
+      (forward-line)
       (kotlin-mode--indent-line)
 
       (should (equal (buffer-string) "names.filter { it.empty }
@@ -93,7 +93,7 @@ return a + b
 (ert-deftest kotlin-mode--sample-test ()
   (with-temp-buffer
     (insert-file-contents "test/sample.kt")
-    (beginning-of-buffer)
+    (goto-char (point-min))
     (kotlin-mode)
     (setq-local indent-tabs-mode nil)
     (setq-local tab-width 4)
