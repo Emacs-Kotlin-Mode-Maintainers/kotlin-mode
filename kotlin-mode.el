@@ -28,7 +28,7 @@
 (require 'comint)
 (require 'rx)
 (require 'cc-cmds)
-(require 'cl)
+(require 'cl-lib)
 (require 'eieio)
 
 (require 'kotlin-mode-lexer)
