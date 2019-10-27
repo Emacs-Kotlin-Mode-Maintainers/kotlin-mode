@@ -117,6 +117,35 @@ return a + b
       (kotlin-mode--indent-line)
       (should (equal text (buffer-string))))))
 
+(ert-deftest kotlin-mode--indent-comment-at-bob--test ()
+  (with-temp-buffer
+    (let ((text "/*
+ *
+ *
+ */"))
+      (pop-to-buffer (current-buffer))
+      (insert text)
+      (goto-char (point-min))
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
+
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string))))))
+
 (defun next-non-empty-line ()
   "Moves to the next non-empty line"
   (forward-line)

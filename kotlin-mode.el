@@ -148,8 +148,9 @@
 
     ;; b-style comment
     (modify-syntax-entry ?/ ". 124b" st)
-    (modify-syntax-entry ?* ". 23" st)
+    (modify-syntax-entry ?* ". 23n" st)
     (modify-syntax-entry ?\n "> b" st)
+    (modify-syntax-entry ?\r "> b" st)
     st))
 
 
@@ -537,20 +538,23 @@ fun foo() {
    of the following format:
    /**
     * Description here
-    */ "
+    */"
   (save-excursion
     (let ((in-comment-block nil)
-          (keep-going (not (kotlin-mode--line-ends "\\*\\*/"))))
+          (keep-going (and
+                       (not (kotlin-mode--line-begins "\\*\\*+/"))
+                       (not (kotlin-mode--line-begins "/\\*"))
+                       (nth 4 (syntax-ppss)))))
       (while keep-going
         (kotlin-mode--prev-line)
         (cond
+         ((kotlin-mode--line-begins "/\\*")
+          (setq keep-going nil)
+          (setq in-comment-block t))
          ((bobp)
           (setq keep-going nil))
          ((kotlin-mode--line-contains "\\*/")
-          (setq keep-going nil))
-         ((kotlin-mode--line-begins "/\\*")
-          (setq keep-going nil)
-          (setq in-comment-block t))))
+          (setq keep-going nil))))
       in-comment-block)))
 
 (defun kotlin-mode--indent-line ()
