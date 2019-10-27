@@ -391,8 +391,7 @@
    We scroll backwards until the net-bracket-count is zero, and this point
    determines the desired indentation level for the current line.")
 
-(cl-defmethod kotlin-mode--count-to-line-start
-  ((counter kotlin-mode--bracket-counter))
+(defun kotlin-mode--count-to-line-start (counter)
   "Count the brackets on the current line, starting from the cursor
    position, and working backward, incrementing the count
    +1 for open-brackets, -1 for close-brackets.
@@ -424,15 +423,13 @@
         (kotlin-mode--add-indent counter
                                  (- position (re-search-backward "^"))))))))
 
-(cl-defmethod kotlin-mode--count-leading-close-brackets
-    ((counter kotlin-mode--bracket-counter))
+(defun kotlin-mode--count-leading-close-brackets (counter)
   "Count any close-bracket at the start of the current line."
   (if (looking-at "\\s)")
       (oset counter use-base nil))
   (kotlin-mode--subtract-count counter (skip-syntax-forward ")")))
 
-(cl-defmethod kotlin-mode--count-trailing-open-brackets
-    ((counter kotlin-mode--bracket-counter))
+(defun kotlin-mode--count-trailing-open-brackets (counter)
   "If the bracket count is at zero, and there are open-brackets at the end
    of the line, do not count them, but add a single indentation level."
   (if (= (oref counter count) 0)
@@ -440,19 +437,16 @@
              (kotlin-mode--add-indent counter kotlin-tab-width)
              (oset counter use-base nil)))))
 
-(cl-defmethod kotlin-mode--add-count
-  ((counter kotlin-mode--bracket-counter) val)
+(defun kotlin-mode--add-count (counter val)
   (cl-incf (oref counter count) val))
 
-(cl-defmethod kotlin-mode--subtract-count
-  ((counter kotlin-mode--bracket-counter) val)
+(defun kotlin-mode--subtract-count (counter val)
   (cl-decf (oref counter count) val))
 
-(cl-defmethod kotlin-mode--add-indent
-  ((counter kotlin-mode--bracket-counter) val)
+(defun kotlin-mode--add-indent (counter val)
   (cl-incf (oref counter indent) val))
 
-(cl-defmethod kotlin-mode--finished ((counter kotlin-mode--bracket-counter))
+(defun kotlin-mode--finished (counter)
   (oref counter finished))
 
 (defun kotlin-mode--in-comment-block ()
@@ -484,7 +478,7 @@
       (kotlin-mode--beginning-of-buffer-indent)
     (let ((cur-indent 0))
       ;; Find bracket-based indentation first
-      (let ((bracket-counter (kotlin-mode--bracket-counter)))
+      (let ((bracket-counter (make-instance 'kotlin-mode--bracket-counter)))
         (save-excursion
           (skip-syntax-forward "-")
           (kotlin-mode--count-leading-close-brackets bracket-counter))
