@@ -332,16 +332,28 @@ If PARSER-STATE is given, it is used instead of (syntax-ppss)."
       ;; single-line string delimiters.
       (if (save-excursion (goto-char (nth 8 parser-state))
                           (looking-at "\"\"\""))
-          (kotlin-mode--chunk 'multiline-string (nth 8 parser-state))
-        (kotlin-mode--chunk 'single-line-string (nth 8 parser-state))))
+          (make-instance 'kotlin-mode--chunk
+                         :type 'multiline-string
+                         :start (nth 8 parser-state))
+        (make-instance 'kotlin-mode--chunk
+                       :type 'single-line-string
+                       :start (nth 8 parser-state))))
      ((eq (nth 4 parser-state) t)
-      (kotlin-mode--chunk 'single-line-comment (nth 8 parser-state)))
+      (make-instance 'kotlin-mode--chunk
+                     :type 'single-line-comment
+                     :start (nth 8 parser-state)))
      ((nth 4 parser-state)
-      (kotlin-mode--chunk 'multiline-comment (nth 8 parser-state)))
+      (make-instance 'kotlin-mode--chunk
+                     :type 'multiline-comment
+                     :start (nth 8 parser-state)))
      ((and (eq (char-before) ?/) (eq (char-after) ?/))
-      (kotlin-mode--chunk 'single-line-comment (1- (point))))
+      (make-instance 'kotlin-mode--chunk
+                     :type 'single-line-comment
+                     :start (1- (point))))
      ((and (eq (char-before) ?/) (eq (char-after) ?*))
-      (kotlin-mode--chunk 'multiline-comment (1- (point))))
+      (make-instance 'kotlin-mode--chunk
+                     :type 'multiline-comment
+                     :start (1- (point))))
      (t
       nil))))
 
