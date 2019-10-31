@@ -401,13 +401,20 @@ the overall count exceeds zero.  If the counter is zero at the
 beginning of the line, Mark the counter finished and set
 indentation.  If we hit a beginning of line but the counter is
 negative, just return without marking finished."
+  (when (nth 4 (syntax-ppss))
+    ;; If the point is inside a comment, goto the beginning of the comment.
+    (goto-char (nth 8 (syntax-ppss))))
   (save-excursion
-    (while (and (<= (oref counter count) 0) (not (bolp)))
-      (backward-char)
-      (cond ((looking-at "\\s(")
-             (cl-incf (oref counter count)))
-            ((looking-at "\\s)")
-             (cl-decf (oref counter count)))))
+    (let ((line-beginning-position (line-beginning-position)))
+      (while (and (<= (oref counter count) 0) (not (bolp)))
+        (forward-comment (- (point)))
+        (backward-char)
+        (when (< (point) line-beginning-position)
+          (goto-char line-beginning-position))
+        (cond ((eq (char-syntax (char-after)) ?\()
+               (cl-incf (oref counter count)))
+              ((eq (char-syntax (char-after)) ?\))
+               (cl-decf (oref counter count))))))
     ;; We are at the beginning of the line, or just before an
     ;; unmatching open bracket.
     (cond
