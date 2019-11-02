@@ -1,7 +1,3 @@
-;; Tests assume a tab is represented by 4 spaces
-(setq-default indent-tabs-mode nil)
-(setq-default tab-width 4)
-
 (require 'kotlin-mode)
 
 (ert-deftest kotlin-mode--top-level-indent-test ()
@@ -14,6 +10,11 @@ import bar.Bar as bBar
 "))
       (insert text)
       (beginning-of-buffer)
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
+
       (kotlin-mode--indent-line)
 
       (should (equal text (buffer-string)))
@@ -42,6 +43,10 @@ return a + b
 
       (insert text)
       (beginning-of-buffer)
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
       (next-line)
 
       (kotlin-mode--indent-line)
@@ -58,6 +63,10 @@ return a + b
 
       (insert text)
       (beginning-of-buffer)
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
 
       (kotlin-mode--indent-line)
 
@@ -83,24 +92,24 @@ return a + b
 
 (ert-deftest kotlin-mode--sample-test ()
   (with-temp-buffer
-      (insert-file-contents "test/sample.kt")
-      (beginning-of-buffer)
-      (while (not (eobp))
-        (let ((expected-line (thing-at-point 'line)))
+    (insert-file-contents "test/sample.kt")
+    (beginning-of-buffer)
+    (kotlin-mode)
+    (setq-local indent-tabs-mode nil)
+    (setq-local tab-width 4)
+    (setq-local kotlin-tab-width 4)
+    (while (not (eobp))
+      (let ((expected-line (thing-at-point 'line)))
 
-          ;; Remove existing indentation
-          (beginning-of-line)
-          (delete-region (point) (progn (skip-chars-forward " \t") (point)))
+        ;; Remove existing indentation
+        (beginning-of-line)
+        (delete-region (point) (progn (skip-chars-forward " \t") (point)))
 
-          ;; Indent the line
-          (kotlin-mode--indent-line)
+        ;; Indent the line
+        (kotlin-mode--indent-line)
 
-          ;; Check that the correct indentation is re-applied
-          (should (equal expected-line (thing-at-point 'line)))
+        ;; Check that the correct indentation is re-applied
+        (should (equal expected-line (thing-at-point 'line)))
 
-          ;; Go to the next non-empty line
-          (next-non-empty-line)
-          )
-        )
-      )
-  )
+        ;; Go to the next non-empty line
+        (next-non-empty-line)))))
