@@ -37,7 +37,7 @@
   "A Kotlin major mode."
   :group 'languages)
 
-(defcustom kotlin-tab-width tab-width
+(defcustom kotlin-tab-width 4
   "The tab width to use for indentation."
   :type 'integer
   :group 'kotlin-mode
