@@ -16,7 +16,6 @@ import bar.Bar as bBar
       (setq-local kotlin-tab-width 4)
 
       (kotlin-mode--indent-line)
-
       (should (equal text (buffer-string)))
 
       (forward-line)
@@ -83,6 +82,69 @@ return a + b
     .sortedBy { it }
     .map { it.toUpperCase() }
     .forEach { print(it) }")))))
+
+(ert-deftest kotlin-mode--ignore-comment-test ()
+  (with-temp-buffer
+    (let ((text "fun foo {
+    bar()
+    // }
+    bar()
+}"))
+      (pop-to-buffer (current-buffer))
+      (insert text)
+      (goto-char (point-min))
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
+
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string))))))
+
+(ert-deftest kotlin-mode--indent-comment-at-bob--test ()
+  (with-temp-buffer
+    (let ((text "/*
+ *
+ *
+ */"))
+      (pop-to-buffer (current-buffer))
+      (insert text)
+      (goto-char (point-min))
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
+
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string)))
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (should (equal text (buffer-string))))))
 
 (defun next-non-empty-line ()
   "Moves to the next non-empty line"
