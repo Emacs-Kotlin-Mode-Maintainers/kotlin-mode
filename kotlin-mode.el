@@ -63,17 +63,22 @@
 ;; REPL
 
 (defun kotlin-do-and-repl-focus (f &rest args)
+  "Call function F with ARGS and pop to the REPL buffer."
   (apply f args)
   (pop-to-buffer kotlin-repl-buffer))
 
 (defun kotlin-send-region (start end)
-  "Send current region to Kotlin interpreter."
+  "Send current region to Kotlin interpreter.
+
+START and END define region within current buffer."
   (interactive "r")
   (comint-send-region kotlin-repl-buffer start end)
   (comint-send-string kotlin-repl-buffer "\n"))
 
 (defun kotlin-send-region-and-focus (start end)
-  "Send current region to Kotlin interpreter and switch to it."
+  "Send current region to Kotlin interpreter and switch to it.
+
+START and END define region within current buffer."
   (interactive "r")
   (kotlin-do-and-repl-focus 'kotlin-send-region start end))
 
@@ -100,6 +105,7 @@
   (kotlin-do-and-repl-focus 'kotlin-send-block))
 
 (defun kotlin-send-line ()
+  "Send current line to Kotlin interpreter."
   (interactive)
   (kotlin-send-region
    (line-beginning-position)
@@ -124,8 +130,8 @@
             kotlin-args-repl))
 
     (set (make-local-variable 'comint-preoutput-filter-functions)
-         (cons (lambda (string)
-                 (replace-regexp-in-string "\x1b\\[.[GJK]" "" string)) nil)))
+         (list (lambda (string)
+                 (replace-regexp-in-string "\x1b\\[.[GJK]" "" string)))))
 
   (pop-to-buffer kotlin-repl-buffer))
 
@@ -139,7 +145,7 @@
     (define-key map (kbd "C-c C-c") 'kotlin-send-block)
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
     map)
-  "Keymap for kotlin-mode")
+  "Keymap for `kotlin-mode'.")
 
 ;;; Font Lock
 
@@ -296,9 +302,14 @@
 
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
-  "Default highlighting expression for `kotlin-mode'")
+  "Default highlighting expression for `kotlin-mode'.")
 
 (defun kotlin-mode--match-interpolation (limit)
+  "Find template expression before LIMIT.
+
+Template expressions must be propertized by `kotlin-mode--syntax-propertize'.
+If a template expression is found, move to that point, set `match-data',
+and return non-nil.  Return nil otherwise."
   (let ((pos (next-single-char-property-change
               (point)
               'kotlin-property--interpolation
@@ -315,8 +326,9 @@
 ;; Indentation
 
 (defun kotlin-mode--base-indentation ()
-  "Return the indentation level of the current line based on brackets only,
-   i.e. ignoring 'continuation' indentation."
+  "Return the indentation level of the current line based on brackets only.
+
+Ignore 'continuation' indentation."
   (cond ((kotlin-mode--line-continuation)
          (- (current-indentation) kotlin-tab-width))
         ((kotlin-mode--in-comment-block-p)
@@ -348,15 +360,16 @@
    determines the desired indentation level for the current line.")
 
 (defun kotlin-mode--count-to-line-start (counter)
-  "Count the brackets on the current line, starting from the
-cursor position, and working backward, incrementing the count +1
-for open-brackets, -1 for close-brackets.
+  "Count the brackets on the current line backwards.
 
-Mark the COUNTER finished, set indentation, and return as soon as
-the overall count exceeds zero.  If the counter is zero at the
-beginning of the line, Mark the counter finished and set
-indentation.  If we hit a beginning of line but the counter is
-negative, just return without marking finished."
+Scan from the cursor position toward the beginning of the line.
+Increment the count +1 for open-brackets, -1 for close-brackets.
+
+When the overall count exceeds zero, mark the COUNTER finished, set
+indentation, and return immediately.  If the counter is zero at the
+beginning of the line, mark the counter finished and set indentation.
+If we hit a beginning of line but the counter is negative, just return
+without marking finished."
   (when (nth 4 (syntax-ppss))
     ;; If the point is inside a comment, goto the beginning of the comment.
     (goto-char (nth 8 (syntax-ppss))))
@@ -441,7 +454,7 @@ the previous line of the line being indented.
 
 If the bracket count is at zero, and there are open-brackets at
 the end of the line, do not count them, but add a single
-indentation level. If bracket count is at zero, we are not
+indentation level.  If bracket count is at zero, we are not
 indenting close brackets.
 
 Example:
@@ -454,12 +467,11 @@ fun foo() {
     }
 }
 
-This function is called with the point at the end of the line
-\"bar {\". This function skips \"{\" backward and add indentation
-amount `kotlin-tab-width', say 4.  Then
-`kotlin-mode--count-to-line-start' seeks to the
-beginning-of-line.  So the final indentation is 8, that is the
-sum of indentation of bar and extra indentation.
+This function is called with the point at the end of the line \"bar
+{\".  This function skips \"{\" backward and add indentation amount
+`kotlin-tab-width', say 4.  Then `kotlin-mode--count-to-line-start'
+seeks to the beginning of the line.  So the final indentation is 8,
+that is the sum of indentation of bar and extra indentation.
 
 On the other hand, when indenting \"baz2()\" in the following
 line, keep cursor and indentation level as is because
@@ -488,23 +500,28 @@ fun foo() {
     (oset counter use-base nil)))
 
 (defun kotlin-mode--add-count (counter val)
+  "Increment count of COUNTER by VAL."
   (cl-incf (oref counter count) val))
 
 (defun kotlin-mode--subtract-count (counter val)
+  "Decrement count of COUNTER by VAL."
   (cl-decf (oref counter count) val))
 
 (defun kotlin-mode--add-indent (counter val)
+  "Increment indentation of COUNTER by VAL."
   (cl-incf (oref counter indent) val))
 
 (defun kotlin-mode--finished-p (counter)
+  "Return t if COUNTER is finished."
   (oref counter finished))
 
 (defun kotlin-mode--in-comment-block-p ()
-  "Return whether the cursor is within a standard comment block structure
-   of the following format:
-   /**
-    * Description here
-    */"
+  "Return whether the cursor is within a standard comment block structure.
+
+Return non-nil if the comment has the following format:
+/**
+ * Description here
+ */"
   (save-excursion
     (let ((in-comment-block nil)
           (keep-going (and
@@ -659,6 +676,7 @@ If it does not exist, will return nil."
 
 
 (defun kotlin-mode--beginning-of-buffer-indent ()
+  "Indent current line assuming the point is at the beginning of the buffer."
   (indent-line-to 0))
 
 ;; the Kotlin mode

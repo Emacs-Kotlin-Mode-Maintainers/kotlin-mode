@@ -383,7 +383,7 @@ If PARSER-STATE is given, it is used instead of (syntax-ppss)."
 ;; Line level movements and predicates
 
 (defun kotlin-mode--prev-line ()
-  "Moves up to the nearest non-empty line."
+  "Move up to the nearest non-empty line."
   (beginning-of-line)
   ;; `forward-comment' skips spaces and newlines as well.
   (forward-comment (- (point))))
@@ -451,7 +451,7 @@ Ignore comments at the end of the line."
 ;; Line continuation
 
 (defun kotlin-mode--line-continuation ()
-  "Return whether this line continues a statement in the previous line"
+  "Return whether this line continues a statement in the previous line."
   (let ((case-fold-search nil))
     (cond
      ;; Tokens that end a statement
