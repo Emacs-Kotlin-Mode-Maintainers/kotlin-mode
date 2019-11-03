@@ -1,11 +1,12 @@
 ;;; kotlin-mode.el --- Major mode for kotlin -*- lexical-binding: t; -*-
 
-;; Copyright © 2015  Shodai Yokoyama
+;; Copyright © 2015 Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Version: 2.0.0
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "24.3"))
+;; URL: https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@
 
 ;;; Commentary:
 
-;;
+;; Major-mode for Kotlin programming language.
 
 ;;; Code:
 
@@ -58,6 +59,8 @@
   "The name of the KotlinREPL buffer."
   :type 'string
   :group 'kotlin)
+
+;; REPL
 
 (defun kotlin-do-and-repl-focus (f &rest args)
   (apply f args)
@@ -126,6 +129,8 @@
 
   (pop-to-buffer kotlin-repl-buffer))
 
+;; Keymap
+
 (defvar kotlin-mode-map
   (let ((map (make-keymap)))
     (define-key map (kbd "C-c C-z") 'kotlin-repl)
@@ -135,27 +140,6 @@
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
     map)
   "Keymap for kotlin-mode")
-
-(defvar kotlin-mode-syntax-table
-  (let ((st (make-syntax-table)))
-
-    ;; Strings
-    (modify-syntax-entry ?\" "\"" st)
-    (modify-syntax-entry ?\' "\"" st)
-    (modify-syntax-entry ?` "\"" st)
-
-    ;; `_' and `@' as being a valid part of a symbol
-    (modify-syntax-entry ?_ "_" st)
-    (modify-syntax-entry ?@ "_" st)
-
-    ;; b-style comment
-    (modify-syntax-entry ?/ ". 124b" st)
-    (modify-syntax-entry ?* ". 23n" st)
-    (modify-syntax-entry ?\n "> b" st)
-    (modify-syntax-entry ?\r "> b" st)
-    st))
-
-(defconst kotlin-mode--closing-brackets '(?} ?\) ?\]))
 
 ;;; Font Lock
 
@@ -328,171 +312,14 @@
                    t)
           (kotlin-mode--match-interpolation limit))))))
 
-(defun kotlin-mode--prev-line ()
-  "Moves up to the nearest non-empty line."
-  (beginning-of-line)
-  ;; `forward-comment' skips spaces and newlines as well.
-  (forward-comment (- (point))))
-
-(defun kotlin-mode--line-begins (pattern)
-  "Return whether the current line begins with the given PATTERN.
-
-Ignore spaces at the beginning of the line."
-  (save-excursion
-    (beginning-of-line)
-    (looking-at (format "^[ \t]*%s" pattern))))
-
-(defun kotlin-mode--line-begins-excluding-comment (pattern)
-  "Return whether the current line begins with the given PATTERN.
-
-Ignore comments and spaces at the beginning of the line."
-  (let ((line-end-position (line-end-position)))
-    (save-excursion
-      (beginning-of-line)
-      (when (nth 4 (syntax-ppss))
-        ;; If the point is inside a comment, goto the beginning of the
-        ;; comment.
-        (goto-char (nth 8 (syntax-ppss))))
-      (forward-comment (point-max))
-      (when (< line-end-position (point))
-        (goto-char line-end-position))
-      (looking-at pattern))))
-
-(defun kotlin-mode--line-ends (pattern)
-  "Return whether the current line ends with the given PATTERN.
-
-Ignore spaces at the end of the line."
-  (save-excursion
-    (beginning-of-line)
-    (looking-at (format ".*%s[ \t]*$" pattern))))
-
-(defun kotlin-mode--line-ends-excluding-comment (pattern)
-  "Return whether the current line ends with the given PATTERN.
-
-Ignore comments at the end of the line."
-  (let ((end-position
-         ;; last point where is neither spaces nor comment
-         (max
-          (line-beginning-position)
-          (save-excursion
-            (end-of-line)
-            (when (nth 4 (syntax-ppss))
-              ;; If the point is inside a comment, goto the beginning
-              ;; of the comment.
-              (goto-char (nth 8 (syntax-ppss))))
-            (forward-comment (- (point)))
-            (point)))))
-    (save-excursion
-      (save-restriction
-        (beginning-of-line)
-        (narrow-to-region (point) end-position)
-        (looking-at (format ".*%s$" pattern))))))
-
-(defun kotlin-mode--line-contains (pattern)
-  "Return whether the current line contains the given PATTERN."
-  (save-excursion
-    (beginning-of-line)
-    (looking-at (format ".*%s.*" pattern))))
-
-(defun kotlin-mode--line-continuation ()
-  "Return whether this line continues a statement in the previous line"
-  (let ((case-fold-search nil))
-    (cond
-     ;; Tokens that end a statement
-     ((save-excursion
-        (kotlin-mode--prev-line)
-        (kotlin-mode--line-ends-excluding-comment
-         (rx (group
-              (or
-               ".*"
-               (seq word-start
-                    (or "return" "continue" "break")
-                    word-end))))))
-      nil)
-
-     ;; Modifiers, that cannot end a statement.
-     ((save-excursion
-        (kotlin-mode--prev-line)
-        (kotlin-mode--line-ends-excluding-comment
-         (rx (group (seq word-start
-                         (or
-                          "public" "private" "protected"
-                          "internal" "enum" "sealed" "annotation"
-                          "data" "inner" "tailrec" "operator" "inline"
-                          "infix" "external" "suspend" "override"
-                          "abstract" "final" "open" "const" "lateinit"
-                          "vararg" "noinline" "crossinline" "reified"
-                          "expect" "actual")
-                         word-end)))))
-      t)
-
-     ;; Tokens that start a statement that have lower priority than modifiers.
-     ((kotlin-mode--line-begins-excluding-comment
-       (rx (group (seq word-start
-                       (or
-                        "public" "private" "protected" "internal"
-                        "enum" "sealed" "annotation" "data" "inner"
-                        "tailrec" "operator" "inline" "infix"
-                        "external" "override" "abstract" "final"
-                        "open" "const" "lateinit" "vararg" "noinline"
-                        "crossinline" "reified" "expect" "actual"
-                        "package" "import" "interface" "val" "var"
-                        "typealias" "constructor" "companion" "init"
-                        "is" "in" "out" "for" "while" "do")
-                       word-end))))
-      nil)
-
-     ((and (kotlin-mode--line-begins-excluding-comment
-            (rx (group (seq word-start "class" word-end))))
-           (not
-            (save-excursion
-              (kotlin-mode--prev-line)
-              (kotlin-mode--line-ends-excluding-comment (rx (group "::"))))))
-      nil)
-
-     ;; Tokens that cannot end a statement
-     ((save-excursion
-        (kotlin-mode--prev-line)
-        (kotlin-mode--line-ends-excluding-comment
-         (rx (group
-              (or
-               (any "-%*./:=+&|<@")
-               "->"
-               (seq word-start
-                    "as?")
-               (seq "!is"
-                    "!in"
-                    word-end)
-               (seq word-start
-                    (or
-                     "package" "import" "class" "interface" "fun"
-                     "object" "val" "var" "typealias" "constructor"
-                     "by" "companion" "init" "where" "if" "else"
-                     "when" "try" "catch" "finally" "for" "do" "while"
-                     "throw" "as" "is" "in" "out")
-                    word-end))))))
-      t)
-
-     ;; Tokens that cannot start a statement
-     ((kotlin-mode--line-begins-excluding-comment
-       (rx (group
-            (or
-             (any ".:=<?&|")
-             "->"
-             (seq word-start "as?")
-             (seq word-start
-                  (or "get" "set" "as" "by" "where")
-                  word-end)))))
-      t)
-
-     (t nil))))
+;; Indentation
 
 (defun kotlin-mode--base-indentation ()
   "Return the indentation level of the current line based on brackets only,
    i.e. ignoring 'continuation' indentation."
   (cond ((kotlin-mode--line-continuation)
          (- (current-indentation) kotlin-tab-width))
-        ((kotlin-mode--in-comment-block)
+        ((kotlin-mode--in-comment-block-p)
          (- (current-indentation) 1))
         (t
          (current-indentation))))
@@ -669,10 +496,10 @@ fun foo() {
 (defun kotlin-mode--add-indent (counter val)
   (cl-incf (oref counter indent) val))
 
-(defun kotlin-mode--finished (counter)
+(defun kotlin-mode--finished-p (counter)
   (oref counter finished))
 
-(defun kotlin-mode--in-comment-block ()
+(defun kotlin-mode--in-comment-block-p ()
   "Return whether the cursor is within a standard comment block structure
    of the following format:
    /**
@@ -681,18 +508,18 @@ fun foo() {
   (save-excursion
     (let ((in-comment-block nil)
           (keep-going (and
-                       (not (kotlin-mode--line-begins "\\*\\*+/"))
-                       (not (kotlin-mode--line-begins "/\\*"))
+                       (not (kotlin-mode--line-begins-p "\\*\\*+/"))
+                       (not (kotlin-mode--line-begins-p "/\\*"))
                        (nth 4 (syntax-ppss)))))
       (while keep-going
         (kotlin-mode--prev-line)
         (cond
-         ((kotlin-mode--line-begins "/\\*")
+         ((kotlin-mode--line-begins-p "/\\*")
           (setq keep-going nil)
           (setq in-comment-block t))
          ((bobp)
           (setq keep-going nil))
-         ((kotlin-mode--line-contains "\\*/")
+         ((kotlin-mode--line-contains-p "\\*/")
           (setq keep-going nil))))
       in-comment-block)))
 
@@ -833,6 +660,8 @@ If it does not exist, will return nil."
 
 (defun kotlin-mode--beginning-of-buffer-indent ()
   (indent-line-to 0))
+
+;; the Kotlin mode
 
 ;;;###autoload
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
