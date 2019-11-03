@@ -181,25 +181,56 @@ println(arg)
     (forward-line)))
 
 (ert-deftest kotlin-mode--sample-test ()
-  (with-temp-buffer
-    (insert-file-contents "test/sample.kt")
-    (goto-char (point-min))
-    (kotlin-mode)
-    (setq-local indent-tabs-mode nil)
-    (setq-local tab-width 4)
-    (setq-local kotlin-tab-width 4)
-    (while (not (eobp))
-      (let ((expected-line (thing-at-point 'line)))
+  (dolist (filename '("test/sample.kt" "test/pathological.kt"))
+    (with-temp-buffer
+      (insert-file-contents filename)
+      (goto-char (point-min))
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
 
-        ;; Remove existing indentation
-        (beginning-of-line)
-        (delete-region (point) (progn (skip-chars-forward " \t") (point)))
+      (while (not (eobp))
+        (back-to-indentation)
+        (let (;; (thing-at-point 'line) returns string with property.
+              (expected-line (buffer-substring-no-properties
+                              (line-beginning-position)
+                              (line-end-position)))
+              actual-line
+              (original-indent (current-column))
+              (known-bug (looking-at ".*//.*KNOWN_BUG")))
+          ;; Remove existing indentation, or indent to column 1 if
+          ;; expected indentation is column 0.
+          (if (= original-indent 0)
+              (indent-line-to 1)
+            (delete-horizontal-space))
 
-        ;; Indent the line
-        (kotlin-mode--indent-line)
+          ;; Indent the line
+          (kotlin-mode--indent-line)
 
-        ;; Check that the correct indentation is re-applied
-        (should (equal expected-line (thing-at-point 'line)))
+          (setq actual-line (buffer-substring-no-properties
+                             (line-beginning-position)
+                             (line-end-position)))
 
-        ;; Go to the next non-empty line
-        (next-non-empty-line)))))
+          ;; Check that the correct indentation is re-applied
+          (if known-bug
+              (if (equal expected-line actual-line)
+                  (message "%s:%s:info: KNOWN_BUG is fixed somehow"
+                           filename
+                           (line-number-at-pos))
+                (back-to-indentation)
+                (message "%s:%s:warn: (known bug) expected indentation to column %d but %d"
+                         filename
+                         (line-number-at-pos)
+                         original-indent
+                         (current-column)))
+            (should
+             (equal
+              (format "%s:%s: %s" filename (line-number-at-pos) expected-line)
+              (format "%s:%s: %s" filename (line-number-at-pos) actual-line))))
+
+          ;; Restore to original indentation for KNOWN_BUG line.
+          (indent-line-to original-indent)
+
+          ;; Go to the next non-empty line
+          (next-non-empty-line))))))

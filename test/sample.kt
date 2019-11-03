@@ -56,8 +56,8 @@ fun main(args: Array<String>) {
 
 fun max(a: Int, b: Int): Int {
     if (a > b)
-        return a
-    else
+        return a // KNOWN_BUG
+    else // KNOWN_BUG
         return b
 }
 
@@ -83,16 +83,16 @@ fun getStringLength(obj: Any): Int? {
 
 fun main(args: Array<String>) {
     for (arg in args)
-        print(arg)
+        print(arg) // KNOWN_BUG
 }
 
 for (i in args.indices)
-    print(args[i])
+    print(args[i]) // KNOWN_BUG
 
-fun main(args: Array<String>) {
+fun main(args: Array<String>) { // KNOWN_BUG
     var i = 0
     while (i < args.size)
-        print(args[i++])
+        print(args[i++]) // KNOWN_BUG
 }
 
 fun cases(obj: Any) {
@@ -106,21 +106,21 @@ fun cases(obj: Any) {
 }
 
 if (x in 1..y-1)
-    print("OK")
+    print("OK") // KNOWN_BUG
 
-if (x !in 0..array.lastIndex)
-    print("Out")
+if (x !in 0..array.lastIndex) // KNOWN_BUG
+    print("Out") // KNOWN_BUG
 
-for (x in 1..5)
-    print(x)
+for (x in 1..5) // KNOWN_BUG
+    print(x) // KNOWN_BUG
 
-for (name in names)
-    println(name)
+for (name in names) // KNOWN_BUG
+    println(name) // KNOWN_BUG
 
-if (text in names) // names.contains(text) is called
-    print("Yes")
+if (text in names) // names.contains(text) is called // KNOWN_BUG
+    print("Yes") // KNOWN_BUG
 
-names.filter { it.startsWith("A") }
+names.filter { it.startsWith("A") } // KNOWN_BUG
     .sortedBy { it }
     .map { it.toUpperCase() }
     .forEach { print(it) }
@@ -227,7 +227,7 @@ inline fun <reified T: Any> Gson.fromJson(json): T = this.fromJson(json, T::clas
 loop@ for (i in 1..100) {
     for (j in 1..100) {
         if (x)
-            break@loop
+            break@loop // KNOWN_BUG
     }
 }
 
@@ -364,15 +364,15 @@ var stringRepresentation: String
     }
 
 var setterVisibility: String = "abc"
-    private set // the setter is private and has the default implementation
+    private set // the setter is private and has the default implementation  // KNOWN_BUG
 
-var setterWithAnnotation: Any? = null
-@Inject set // annotate the setter with Inject
+var setterWithAnnotation: Any? = null // KNOWN_BUG
+    @Inject set // annotate the setter with Inject // KNOWN_BUG
 
-var counter = 0 // the initializer value is written directly to the backing field
+var counter = 0 // the initializer value is written directly to the backing field // KNOWN_BUG
     set(value) {
         if (value >= 0)
-            field = value
+            field = value // KNOWN_BUG
     }
 
 val isEmpty: Boolean
@@ -446,9 +446,9 @@ class D : A, B {
 private fun foo() {} // visible inside example.kt
 
 public var bar: Int = 5 // property is visible everywhere
-    private set         // setter is visible only in example.kt
+    private set         // setter is visible only in example.kt // KNOWN_BUG
 
-internal val baz = 6    // visible inside the same module
+internal val baz = 6    // visible inside the same module // KNOWN_BUG
 
 open class Outer {
     private val a = 1
@@ -555,12 +555,12 @@ fun <T : Comparable<T>> sort(list: List<T>) {
 }
 
 fun <T> cloneWhenGreater(list: List<T>, threshold: T): List<T>
-where T : Comparable,
-T : Cloneable {
-    return list.filter { it > threshold }.map { it.clone() }
-}
+    where T : Comparable,
+          T : Cloneable { // KNOWN_BUG
+    return list.filter { it > threshold }.map { it.clone() } // KNOWN_BUG
+} // KNOWN_BUG
 
-enum class Direction {
+enum class Direction { // KNOWN_BUG
     NORTH, SOUTH, WEST, EAST
 }
 
@@ -608,13 +608,12 @@ fun countClicks(window: JComponent) {
         object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 clickCount++
-            }
+            } // KNOWN_BUG
 
             override fun mouseEntered(e: MouseEvent) {
                 enterCount++
-            }
-        }
-    )
+            } // KNOWN_BUG
+    })
     // ...
 }
 
@@ -652,8 +651,8 @@ infix fun Int.shl(x: Int): Int {
 fun <T> asList(vararg ts: T): List<T> {
     val result = ArrayList<T>()
     for (t in ts) // ts is an Array
-        result.add(t)
-    return result
+        result.add(t) // KNOWN_BUG
+    return result // KNOWN_BUG
 }
 
 tailrec fun findFixPoint(x: Double = 1.0): Double
@@ -674,8 +673,8 @@ val result = lock(lock, ::toBeSynchronized)
 fun <T, R> List<T>.map(transform: (T) -> R): List<R> {
     val result = arrayListOf<R>()
     for (item in this)
-        result.add(transform(item))
-    return result
+        result.add(transform(item)) // KNOWN_BUG
+    return result // KNOWN_BUG
 }
 
 val doubled = ints.map { it -> it * 2 }
@@ -688,9 +687,9 @@ max(strings, { a, b -> a.length < b.length
 fun <T> max(collection: Collection<T>, less: (T, T) -> Boolean): T? {
     var max: T? = null
     for (it in collection)
-        if (max == null || less(max, it))
-        max = it
-    return max
+        if (max == null || less(max, it)) // KNOWN_BUG
+            max = it // KNOWN_BUG
+    return max // KNOWN_BUG
 }
 
 val sum: (Int, Int) -> Int = { x, y -> x + y }
