@@ -13,7 +13,7 @@ import bar.Bar as bBar
 /****************************************************************
  Multiline comment
  without leading "*"
-****************************************************************/
+****************************************************************/ // KNOWN_BUG
 
 fun sum(a: Int, b: Int): Int {
     return a + b
@@ -56,8 +56,8 @@ fun main(args: Array<String>) {
 
 fun max(a: Int, b: Int): Int {
     if (a > b)
-        return a // KNOWN_BUG
-    else // KNOWN_BUG
+        return a
+    else
         return b
 }
 
@@ -83,16 +83,16 @@ fun getStringLength(obj: Any): Int? {
 
 fun main(args: Array<String>) {
     for (arg in args)
-        print(arg) // KNOWN_BUG
+        print(arg)
 }
 
 for (i in args.indices)
-    print(args[i]) // KNOWN_BUG
+    print(args[i])
 
-fun main(args: Array<String>) { // KNOWN_BUG
+fun main(args: Array<String>) {
     var i = 0
     while (i < args.size)
-        print(args[i++]) // KNOWN_BUG
+        print(args[i++])
 }
 
 fun cases(obj: Any) {
@@ -106,21 +106,21 @@ fun cases(obj: Any) {
 }
 
 if (x in 1..y-1)
-    print("OK") // KNOWN_BUG
+    print("OK")
 
-if (x !in 0..array.lastIndex) // KNOWN_BUG
-    print("Out") // KNOWN_BUG
+if (x !in 0..array.lastIndex)
+    print("Out")
 
-for (x in 1..5) // KNOWN_BUG
-    print(x) // KNOWN_BUG
+for (x in 1..5)
+    print(x)
 
-for (name in names) // KNOWN_BUG
-    println(name) // KNOWN_BUG
+for (name in names)
+    println(name)
 
-if (text in names) // names.contains(text) is called // KNOWN_BUG
-    print("Yes") // KNOWN_BUG
+if (text in names) // names.contains(text) is called
+    print("Yes")
 
-names.filter { it.startsWith("A") } // KNOWN_BUG
+names.filter { it.startsWith("A") }
     .sortedBy { it }
     .map { it.toUpperCase() }
     .forEach { print(it) }
@@ -227,7 +227,7 @@ inline fun <reified T: Any> Gson.fromJson(json): T = this.fromJson(json, T::clas
 loop@ for (i in 1..100) {
     for (j in 1..100) {
         if (x)
-            break@loop // KNOWN_BUG
+            break@loop
     }
 }
 
@@ -364,15 +364,15 @@ var stringRepresentation: String
     }
 
 var setterVisibility: String = "abc"
-    private set // the setter is private and has the default implementation  // KNOWN_BUG
+    private set // the setter is private and has the default implementation
 
-var setterWithAnnotation: Any? = null // KNOWN_BUG
-    @Inject set // annotate the setter with Inject // KNOWN_BUG
+var setterWithAnnotation: Any? = null
+    @Inject set // annotate the setter with Inject
 
-var counter = 0 // the initializer value is written directly to the backing field // KNOWN_BUG
+var counter = 0 // the initializer value is written directly to the backing field
     set(value) {
         if (value >= 0)
-            field = value // KNOWN_BUG
+            field = value
     }
 
 val isEmpty: Boolean
@@ -446,9 +446,9 @@ class D : A, B {
 private fun foo() {} // visible inside example.kt
 
 public var bar: Int = 5 // property is visible everywhere
-    private set         // setter is visible only in example.kt // KNOWN_BUG
+    private set         // setter is visible only in example.kt
 
-internal val baz = 6    // visible inside the same module // KNOWN_BUG
+internal val baz = 6    // visible inside the same module
 
 open class Outer {
     private val a = 1
@@ -556,11 +556,11 @@ fun <T : Comparable<T>> sort(list: List<T>) {
 
 fun <T> cloneWhenGreater(list: List<T>, threshold: T): List<T>
     where T : Comparable,
-          T : Cloneable { // KNOWN_BUG
-    return list.filter { it > threshold }.map { it.clone() } // KNOWN_BUG
-} // KNOWN_BUG
+          T : Cloneable {
+    return list.filter { it > threshold }.map { it.clone() }
+}
 
-enum class Direction { // KNOWN_BUG
+enum class Direction {
     NORTH, SOUTH, WEST, EAST
 }
 
@@ -591,8 +591,7 @@ window.addMouseListener(
         override fun mouseEntered(e: MouseEvent) {
             // ...
         }
-    }
-)
+    })
 
 val adHoc = object {
     var x: Int = 0
@@ -608,12 +607,12 @@ fun countClicks(window: JComponent) {
         object : MouseAdapter() {
             override fun mouseClicked(e: MouseEvent) {
                 clickCount++
-            } // KNOWN_BUG
+            }
 
             override fun mouseEntered(e: MouseEvent) {
                 enterCount++
-            } // KNOWN_BUG
-    })
+            }
+        })
     // ...
 }
 
@@ -651,8 +650,8 @@ infix fun Int.shl(x: Int): Int {
 fun <T> asList(vararg ts: T): List<T> {
     val result = ArrayList<T>()
     for (t in ts) // ts is an Array
-        result.add(t) // KNOWN_BUG
-    return result // KNOWN_BUG
+        result.add(t)
+    return result
 }
 
 tailrec fun findFixPoint(x: Double = 1.0): Double
@@ -673,8 +672,8 @@ val result = lock(lock, ::toBeSynchronized)
 fun <T, R> List<T>.map(transform: (T) -> R): List<R> {
     val result = arrayListOf<R>()
     for (item in this)
-        result.add(transform(item)) // KNOWN_BUG
-    return result // KNOWN_BUG
+        result.add(transform(item))
+    return result
 }
 
 val doubled = ints.map { it -> it * 2 }
@@ -682,14 +681,14 @@ val doubled = ints.map { it -> it * 2 }
 strings.filter { it.length == 5 }.sortBy { it }.map { it.toUpperCase() }
 
 max(strings, { a, b -> a.length < b.length
-})
+             })
 
 fun <T> max(collection: Collection<T>, less: (T, T) -> Boolean): T? {
     var max: T? = null
     for (it in collection)
-        if (max == null || less(max, it)) // KNOWN_BUG
-            max = it // KNOWN_BUG
-    return max // KNOWN_BUG
+        if (max == null || less(max, it))
+            max = it
+    return max
 }
 
 val sum: (Int, Int) -> Int = { x, y -> x + y }
@@ -732,8 +731,10 @@ inline fun <reified T> TreeNode.findParentOfType(): T? {
 class Test {
     fun tryAdd(a: Int?, b: Int?) : Int? {
         var result: Int? = null
-        a?.let { lhs ->
-            b?.let { rhs ->
+        a?.let {
+            lhs ->
+            b?.let {
+                rhs ->
                 result = lhs + rhs
             }
         }

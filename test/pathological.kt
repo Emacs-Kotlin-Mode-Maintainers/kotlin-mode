@@ -17,9 +17,15 @@
     :
     Foo
     .
-    Bar
+    Bar<
+        A // KNOWN_BUG
+    > // KNOWN_BUG
     .
     Baz
+
+@file
+    :
+    Foo(aaa)
 
 // packageHeader
 package foo // Line breaks are prohibited after "package".
@@ -44,10 +50,10 @@ public
     typealias
     A
     <
-        B, // KNOWN_BUG
-        C // KNOWN_BUG
-    > // KNOWN_BUG
-    = // KNOWN_BUG
+        B, // KNOWN_BUG_WHEN_TRUNCATED
+        C // KNOWN_BUG_WHEN_TRUNCATED
+    >
+    =
     D
 
 // classDeclaration
@@ -58,12 +64,12 @@ public
     class
     A
     <
-        A, // KNOWN_BUG
-        B // KNOWN_BUG
-    > // KNOWN_BUG
+        A, // KNOWN_BUG_WHEN_TRUNCATED
+        B // KNOWN_BUG_WHEN_TRUNCATED
+    >
     // primaryConstructor
     public
-    constructor // KNOWN_BUG
+    constructor
     (
         // classParameters
         val
@@ -82,47 +88,48 @@ public
     :
     // delegationSepcifiers
     Base
-    by
-    x +
-    x,
-    B, // KNOWN_BUG
+        by
+        x +
+        x,
+    B,
     C,
     D
         .
         (Int)
         ->
         Int
-    where // KNOWN_BUG
-        @A // KNOWN_BUG
-        A // KNOWN_BUG
+    where
+        @A
+        A
             :
             A,
         B
             :
             B {
 
-    public // KNOWN_BUG
+    public
         interface
         A {
-       fun a(): Int // KNOWN_BUG
-    } // KNOWN_BUG
+        fun a(): Int
+        fun b(): Int
+    }
 
     // typeParameters
     data
         class
         Bar<
-            @A // KNOWN_BUG
-            out // KNOWN_BUG
-                A
+            @A // KNOWN_BUG_WHEN_TRUNCATED
+            out
+                A // KNOWN_BUG_WHEN_TRUNCATED
                 :
                 A,
-            @A
-            in
+            @A // KNOWN_BUG_WHEN_TRUNCATED
+            in // KNOWN_BUG_WHEN_TRUNCATED
                 A
                 :
                 A
-        > // KNOWN_BUG
-    { // brace on its own line // KNOWN_BUG
+        >
+    { // brace on its own line
         fun a() {
         }
     }
@@ -131,15 +138,117 @@ public
         enum
         class
         A(val x: Int) {
-        // enumClassBody // KNOWN_BUG
-        A(1), B(1), // KNOWN_BUG
+        // enumClassBody
+        A(1), B(1),
         C(1) {
             override fun a() = 2
-        }, D(1),
+        }, D(1) {
+            override fun a() = 3
+        },
         E(1);
 
         fun a(): Int = x
-    } // KNOWN_BUG
+    }
+
+    // typeConstraints
+    public
+        class
+        Foo<
+            A // KNOWN_BUG_WHEN_TRUNCATED
+        >
+        :
+        X,
+        Y
+        where
+            A
+                :
+                B,
+            A
+                :
+                C {
+    }
+
+    public class Foo<A>: X, Y
+        where A
+                  :
+                  B,
+              A
+                  :
+                  C {
+    }
+
+    public class Foo<A>: X, Y where
+        A
+            :
+            B,
+        A
+            :
+            C {
+    }
+
+    public class Foo<A>: X, Y where A
+                                        :
+                                        B,
+                                    A
+                                        :
+                                        C {
+    }
+
+    fun <
+        A
+    > Foo.foo()
+        : A
+        where
+            A
+                :
+                B,
+            A
+                :
+                C {
+    }
+
+    fun <
+        A
+    > Foo.foo()
+        : A
+        where
+            A
+                :
+                B,
+            A
+                :
+                C
+        =
+        A()
+
+    val
+        <
+            A // KNOWN_BUG_WHEN_TRUNCATED
+        >
+        A
+        .
+        x
+        where
+            A
+                :
+                B,
+            A
+                :
+                C
+        =
+        1
+
+    val f = fun A.(): A
+        where
+            A:
+                B,
+            A:
+                C {
+    }
+
+    class Foo<T> where T: A
+                     , T: B
+                     , T: C
 
     // anonymousInitializer
     init {
@@ -153,29 +262,29 @@ public
         A
         :
         B {
-        fun foo() { // KNOWN_BUG
+        fun foo() {
         }
-    } // KNOWN_BUG
+    }
 
     // functionDeclaration
     public
         fun
         <
-            A // KNOWN_BUG
+            A // KNOWN_BUG_WHEN_TRUNCATED
         >
         A
-        . // KNOWN_BUG
+        .
         foo
         // functionValueParameters // KNOWN_BUG
-        ( // KNOWN_BUG
+        (
             a: Int = 1
         )
-        : // KNOWN_BUG
+        :
         A
         where
-        A : A {
-        a() // KNOWN_BUG
-    } // KNOWN_BUG
+            A : A {
+        a()
+    }
 
     fun
         foo(x)
@@ -186,22 +295,22 @@ public
     public
         val
         <
-          A // KNOWN_BUG
-        > // KNOWN_BUG
+            A // KNOWN_BUG_WHEN_TRUNCATED
+        >
         A
-        . // KNOWN_BUG
+        .
         @A
-        a // KNOWN_BUG
-        : // KNOWN_BUG
-        A
-        where
-        A
+        a
         :
         A
+        where
+            A
+                :
+                A
         =
         a
-        get() = 1
-        set(value) {
+        public get() = 1
+        public set(value) {
             foo(value)
         }
 
@@ -221,18 +330,19 @@ public
 
     // getter/setter with default implementation
     var x = 1
-        @A get // KNOWN_BUG
+        @A get
         @A set
 
-    // objectDeclaration // KNOWN_BUG
-    public // KNOWN_BUG
+    // objectDeclaration
+    public
         object
         Foo
         :
         Bar {
-        fun foo() { // KNOWN_BUG
+        fun foo() {
+            bar()
         }
-    } // KNOWN_BUG
+    }
 
     // secondaryConstructor
     public
@@ -241,24 +351,24 @@ public
         )
         :
         this
-        ( // KNOWN_BUG
+        (
             1
         ) {
-        a() // KNOWN_BUG
-    } // KNOWN_BUG
+        a()
+    }
 
-    public // KNOWN_BUG
+    public
         constructor
         (
         )
         :
         super
-        ( // KNOWN_BUG
+        (
             1
         )
 
-    // dynamic type // KNOWN_BUG
-    var x: dynamic = 1 // KNOWN_BUG
+    // dynamic type
+    var x: dynamic = 1
 
     // nullableType
     var
@@ -266,21 +376,21 @@ public
         :
         A
         <
-            X, // KNOWN_BUG
-            *, // KNOWN_BUG
+            X, // KNOWN_BUG_WHEN_TRUNCATED
+            *, // KNOWN_BUG_WHEN_TRUNCATED
             out
                 Y,
             in
                 Z
-        > // KNOWN_BUG
-        . // KNOWN_BUG
+        >
+        .
         B
         .
         C
         <
-            X // KNOWN_BUG
+            X // KNOWN_BUG_WHEN_TRUNCATED
         >
-        ? // KNOWN_BUG
+        ?
         ?
         ?
         =
@@ -315,29 +425,35 @@ public
         )
         ->
         C
-} // KNOWN_BUG
+}
 
-// statements // KNOWN_BUG
-fun foo() { // KNOWN_BUG
+// statements
+fun foo() {
     //explicit semicolons
-    a();
-    b();
+    /* aaa */ a(); b();
     c();
 
     // annotation
     @A
+    @B
+        .D(aaa) @C
+    @[
+        A
+        B
+        C
+    ]
     // label
     aaa@
-    a() // KNOWN_BUG
+    a()
 
-    // forStatement // KNOWN_BUG
-    for ( // KNOWN_BUG
+    // forStatement
+    for (
         @A
         a
             :
             A
         in
-            aaa
+        aaa
     ) {
         a()
     }
@@ -347,7 +463,7 @@ fun foo() { // KNOWN_BUG
             @A
             (x, y)
             in
-                aaa
+            aaa
         )
     {
         a()
@@ -356,10 +472,10 @@ fun foo() { // KNOWN_BUG
     for (
         a in aaa
     )
-        a() // KNOWN_BUG
+        a()
 
-    // whileStatement // KNOWN_BUG
-    while ( // KNOWN_BUG
+    // whileStatement
+    while (
         a()
     ) {
         a()
@@ -376,35 +492,46 @@ fun foo() { // KNOWN_BUG
     while (
         a()
     )
-        a() // KNOWN_BUG
+        a()
 
-    while ( // KNOWN_BUG
+    while (
         a()
     )
-        ; // KNOWN_BUG
+        ;
 
-    // doWhileStatement // KNOWN_BUG
-    do { // KNOWN_BUG
+    // doWhileStatement
+    do {
         a()
     } while (
         a()
     )
 
     do
-    { // KNOWN_BUG
+    {
         a()
     }
-    while // KNOWN_BUG
+    while
         (
             a()
         )
 
     do
-        a()
+        a() +
+        b()
     while (a())
 
     do
     while (a())
+
+    while (a())
+        do
+            do
+            while(a())
+        while(a())
+
+    while(a())
+        do
+        while(a())
 
     // assignment
     (x, y) = // Line breaks are prohibited before assignment operators.
@@ -473,9 +600,9 @@ fun foo() { // KNOWN_BUG
 
     val x =
         a >
-        b // KNOWN_BUG
+        b
 
-    val x = // KNOWN_BUG
+    val x =
         a <=
         b
 
@@ -484,19 +611,19 @@ fun foo() { // KNOWN_BUG
         b
 
     val x =
-        a in // Line breaks are prohibited before in/is operators
+        foo(a) in // Line breaks are prohibited before in/is operators
         b
 
     val x =
-        a
-        !in // KNOWN_BUG
-        b // KNOWN_BUG
+        a !in
+        b
 
     when (a()) {
         1 -> a()
         // Line breaks are prohibited before in/is operators, So the following
         // line should not be indented.
         in aaa -> a()
+        !in aaa -> a()
     }
 
     val x =
@@ -512,6 +639,7 @@ fun foo() { // KNOWN_BUG
         // Line breaks are prohibited before in/is operators, So the following
         // line should not be indented.
         is X -> a()
+        !is X -> a()
     }
 
     val x =
@@ -524,8 +652,16 @@ fun foo() { // KNOWN_BUG
         a shl // Line breaks are allowed after infix function.
         b // KNOWN_BUG
 
+     var shl = 1 // KNOWN_BUG
+     val x = shl shl shl
+     shl < 100 && foo() // this is not a continuation of the previous line.
+
+     var shl = 1
+     val x = shl shl
+         shl < 100 && foo() // this is a continuation of the previous line. // KNOWN_BUG
+
     // This is not a infix function call; line breaks are // KNOWN_BUG
-    // prohibited before infix function. // KNOWN_BUG
+    // prohibited before infix function.
     val x = // KNOWN_BUG
         a
     f (b) // So this line should not indented.
@@ -559,17 +695,17 @@ fun foo() { // KNOWN_BUG
     // prefixUnaryExpression
     val x =
         @a
-        a@ // label // KNOWN_BUG
-        + // KNOWN_BUG
+        a@ // label
+        +
         -
         ++
-        a
+        a // KNOWN_BUG
 
-    val x =
+    val x = // KNOWN_BUG
         --
-        a
+        a // KNOWN_BUG
 
-    val x =
+    val x = // KNOWN_BUG
         !
         a // KNOWN_BUG
 
@@ -588,43 +724,81 @@ fun foo() { // KNOWN_BUG
         a
     -- a // This line too.
 
-    val x =
+    var shl = 1
+    val x = shl shl shl ++
+    shl < 100 && foo() // this is not a continuation of the previous line.
+
+    var shl = 1
+    val x = shl shl ++
+        shl < 100 && foo() // this is a continuation of the previous line. // KNOWN_BUG
+
+    val x = // KNOWN_BUG
         a!!
 
-    val x =
+    val x = foo()!!
+    foo() // this is not a continuation of the previous line.
+
+    val x = !!
+        foo() // this is a continuation of the previous line. // KNOWN_BUG
+
+    val x = // KNOWN_BUG
         f< // Line breaks are prohibited before type arguments.
-            A // KNOWN_BUG
+            A // KNOWN_BUG_WHEN_TRUNCATED
         >( // Line breaks are prohibited before function arguments.
             x
         )[ // Line breaks are prohibited before subscript.
             x
         ]
-        . // KNOWN_BUG
+        .
         a
         .
         b
 
     // lambda arguments
     val x = f()
-    @A
-    a@
-    { // KNOWN_BUG
+    {
         a()
     }
 
-    val x = f() @A a@ { // KNOWN_BUG
+    val x = f()
+    @A
+    a@
+    {
+        a()
+    }
+
+    val x = f() @A a@ {
+        a()
+    }
+
+    val x = f
+    {
         a()
     }
 
     val x = f
     @A
     a@
-    { // KNOWN_BUG
+    {
         a()
     }
 
-    val x = f @A a@ { // KNOWN_BUG
+    val x = f @A a@ {
         a()
+    }
+
+    val x = x
+        .foo {
+            a
+        }
+        .bar {
+            a
+        }
+
+    val x = x.foo {
+        a
+    }.bar {
+        a
     }
 
     val x =
@@ -643,9 +817,9 @@ fun foo() { // KNOWN_BUG
     // collectionLiteral
     @A(x = [
            1, 2, 3,
-           4, 5, 6,
+           /* aaa */ 4, 5, 6,
            7, 8, 9
-    ])
+       ])
     a()
 
     // CharacterLiteral
@@ -660,27 +834,27 @@ fun foo() { // KNOWN_BUG
 
     // stringLiteral
     val x = "abc\"def${
-        foo("abc") // KNOWN_BUG
-    }ghi${ // KNOWN_BUG
-        "aaa\${ // dollar sign cannot be escaped // KNOWN_BUG
-            1 // KNOWN_BUG
-        }bbb" // KNOWN_BUG
-    }jkl" // KNOWN_BUG
+        foo("abc")
+    }ghi${
+        "aaa\${ // dollar sign cannot be escaped
+            1
+        }bbb"
+    }jkl"
 
     val x = """a
-               "b" // KNOWN_BUG
+               "b"
                c${
-        foo("""a // KNOWN_BUG
-                b // KNOWN_BUG
-                  c // KNOWN_BUG
-            """) // KNOWN_BUG
-    }d // KNOWN_BUG
-    e // KNOWN_BUG
+                   foo("""a
+                           b
+                            c
+                       """)
+               }d
+    e
     f${
-        """aaa\${ // KNOWN_BUG
-            1 // KNOWN_BUG
-        }bbb""" // KNOWN_BUG
-    }ghi""" // KNOWN_BUG
+        """aaa\${
+            1
+        }bbb"""
+    }ghi"""
 
     val x =
         a("'")
@@ -693,15 +867,15 @@ fun foo() { // KNOWN_BUG
     }
 
     val f: () -> Unit = { ->
-        a() // KNOWN_BUG
-        a() // KNOWN_BUG
+        a()
+        a()
         a()
     }
 
     val f: () -> Unit = {
-        -> // KNOWN_BUG
+        ->
         a()
-        a() // KNOWN_BUG
+        a()
         a()
     }
 
@@ -716,9 +890,9 @@ fun foo() { // KNOWN_BUG
                           )
                               :
                               AAA
-                              ->
-        a() // KNOWN_BUG
-        a() // KNOWN_BUG
+                          ->
+        a()
+        a()
         a()
     }
 
@@ -726,11 +900,23 @@ fun foo() { // KNOWN_BUG
         x,
         y,
         z
-        -> // KNOWN_BUG
+        ->
         a()
-        a() // KNOWN_BUG
+        a()
         a()
     }
+
+    val f: () -> Unit = {
+        (x,
+         y,
+         z)
+        ->
+        a()
+        a()
+        a()
+    }
+
+    // functionLiteral
 
     val f =
         fun
@@ -742,42 +928,46 @@ fun foo() { // KNOWN_BUG
         :
         AAA
         where
-        A
-        :
-        A,
-        B // KNOWN_BUG
-        : // KNOWN_BUG
-        B {
-        a() // KNOWN_BUG
-    } // KNOWN_BUG
+            A
+                :
+                A,
+            B
+                :
+                B {
+            a() // KNOWN_BUG
+        } // KNOWN_BUG
 
-    // functionLiteral
     val f = fun
-    {  // KNOWN_BUG
+    {
         a()
     }
 
-    // objectLiteral // KNOWN_BUG
-    val x = // KNOWN_BUG
-        object
-        :
-        A,
-        B // KNOWN_BUG
-            by
-            b,
-        C {
-        fun foo() { // KNOWN_BUG
-        }
-    } // KNOWN_BUG
-
-    val x = object // KNOWN_BUG
-    { // KNOWN_BUG
+    // objectLiteral
+    val object: A by a, B by b {
         fun foo() {
         }
     }
 
-    // thisExpression // KNOWN_BUG
-    val x = // KNOWN_BUG
+    val x =
+        object
+        :
+        A,
+        B
+            by
+            b,
+        C {
+            fun foo() {
+            }
+        }
+
+    val x = object
+    {
+        fun foo() {
+        }
+    }
+
+    // thisExpression
+    val x =
         this
 
     val x =
@@ -792,214 +982,364 @@ fun foo() { // KNOWN_BUG
 
     val x =
         super<
-            Int // KNOWN_BUG
+            Int // KNOWN_BUG_WHEN_TRUNCATED
         >@Foo
 
-     // ifExpression // KNOWN_BUG
-     val x = if ( // KNOWN_BUG
-         a
-     ) {
-         a()
-     }
+    // ifExpression
+    val x = if (
+        a +
+            1
+    ) {
+        a()
+    }
 
-     val x = if
-         (
-             a
-         )
-     {
-         a()
-     }
+    val x = if
+        (
+            a +
+                1
+        )
+    {
+        a()
+    }
 
-     val x = if (
-         a
-     )
-         a() // KNOWN_BUG
+    val x = if (
+        a
+    )
+        a()
 
-     val x = if ( // KNOWN_BUG
-         a
-     )
-         ; // KNOWN_BUG
+    val x = if (
+        a
+    )
+        ;
 
-     val x = if ( // KNOWN_BUG
-         a
-     ) {
-         a()
-     } else {
-         a()
-     }
+    val x = if (
+        a
+    ) {
+        a()
+    } else {
+        a()
+    }
 
-     val x = if
-         (
-             a
+    val x = if
+        (
+            a
+        )
+    {
+        a()
+    }
+    else
+    {
+        a()
+    }
 
-         )
-     {
-         a()
-     }
-     else
-     { // KNOWN_BUG
-         a()
-     }
+    val x = if (
+        a
+    )
+        a()
+    else
+        a()
 
-     val x = if ( // KNOWN_BUG
-         a
-     )
-         a() // KNOWN_BUG
-     else // KNOWN_BUG
-         a()
+    val x = if (
+        a
+    )
+        ;
+    else
+        ;
 
-     val x = if (
-         a
-     )
-         ; // KNOWN_BUG
-     else // KNOWN_BUG
-         ;
+    val x = if (
+        a
+    )
+    else
+        ;
 
-     val x = if (
-         a
-     )
-     else
-         ;
+    val x =
+        if (
+            a
+        ) {
+            a()
+        } else {
+            a()
+        }
 
-     // whenExpression
+    val x = if (foo) 1
+    else 2 // should be indented?
 
-     val x = when (
-         @A
-         val
-             a
-             =
-             a()
-     ) {
-         a(), b(),
-         c(), d()
-             ->
-         { // KNOWN_BUG
-             a()
-         }
+    val x =
+        if (foo) 1
+        else 2
 
-         in // KNOWN_BUG
-             a()
-             ->
-         { // KNOWN_BUG
-         }
+    val x = if (foo) 1 +
+                         1
+    else 2 +
+             1
 
-         is // KNOWN_BUG
-             A
-             ->
-         { // KNOWN_BUG
-         }
+    val x = if (foo)
+        if (bar)
+            aaa() +
+                1
+        else
+            if (baz)
+                if (aaa) aaa else bbb +
+                                      1
+            else
+                if (aaa) aaa else
+                                 bbb +
+                                     1
+    else
+        if (bar)
+            if (aaa)
+                if (bbb)
+                    ccc +
+                        1 +
+                        2
+                else
+                    ccc +
+                        1 +
+                        2
+            else
+                ccc +
+                    1 +
+                    2
+        else
+            aaa() +
+                1
 
-         a() // KNOWN_BUG
-             ->
-             a()
+    val x = if (foo)
+        while (false) {
+            aaa() +
+                1
+        }
+    else
+        while (false) {
+            aaa() +
+                1
+        }
 
-         else
-             ->
-         { // KNOWN_BUG
-         }
-     }
+    val x = if (a)
+        foo() +
+            1
+    else if (e)
+        foo() +
+            1
+    else
+        foo() +
+            1
 
-     val x = when
-         (
-             a()
-         )
-     {
-         a -> 1
-     }
+    val x = if (a) {
+        foo() +
+            1
+    } else if (e) {
+        foo() +
+            1
+    } else {
+        foo() +
+            1
+    }
 
-     // tryExpression
-     val x = try {
-         a()
-     } catch(@A e: E) {
-         a()
-     } catch(@A e: E) {
-         a()
-     } finally {
-         a()
-     }
+    val x = if (a) {
+        foo() +
+            1
+    } else
+          if (e) {
+              foo() +
+                  1
+          } else {
+              foo() +
+                  1
+          }
 
-     val x = try
-     { // KNOWN_BUG
-         a()
-     }
-     catch // KNOWN_BUG
-         (
-             @A e: E
-         )
-     {
-         a()
-     }
-     finally
-     { // KNOWN_BUG
-         a()
-     }
+    val x = if (a)
+    {
+        foo() +
+            1
+    }
+    else if (e)
+    {
+        foo() +
+            1
+    }
+    else
+    {
+        foo() +
+            1
+    }
 
-     val x = try { // KNOWN_BUG
-         a()
-     } finally {
-         a()
-     }
+    val x = if (a) if (a) 1 +
+                              1 else 1 else
+                                           if (a) if (a) 1 +
+                                                             1 else 1 else
+                                                                          1
 
-     val x = try
-     { // KNOWN_BUG
-         a()
-     }
-     finally // KNOWN_BUG
-     { // KNOWN_BUG
-         a()
-     }
+    // whenExpression
 
-     // jumpExpression // KNOWN_BUG
-     val x = // KNOWN_BUG
-         throw
-         a()
+    val x = when (
+        @A
+        val
+            a
+            =
+            a()
+    ) {
+        a(), b(),
+        c(), d()
+            ->
+        {
+            a()
+        }
 
-     val x =
-         return a() // Line breaks are prohibited after return.
+        a() -> {
+            a()
+        }
 
-     val x =
-         return // Line breaks are prohibited after return.
-     a() // So this line should not be indented.
+        in
+            a()
+            ->
+        {
+            a ()
+        }
 
-     val x =
-         return@A a() // Line breaks are prohibited after return.
+        is
+            A
+            ->
+        {
+        }
 
-     val x =
-         return@A // Line breaks are prohibited after return.
-     a() // So this line should not be indented.
+        a()
+            ->
+            if (x) {
+                1
+            } else {
+                2
+            }
 
-     val x =
-         continue
+        if (x)
+            1
+        else
+            2
+            ->
+            if (x)
+                1
+            else
+                2
 
-     val x =
-         continue@A
+        else
+            ->
+        {
+            a()
+        }
+    }
 
-     val x =
-         break
+    val x = when
+        (
+            a()
+        )
+    {
+        a -> 1
+    }
 
-     val x =
-         break@A
+    // tryExpression
+    val x = try {
+        a()
+    } catch(@A e: E) {
+        a()
+    } catch(@A e: E) {
+        a()
+    } finally {
+        a()
+    }
 
-     // callableReference
-     val x =
-         Foo
-         ::
-         foo
+    val x =
+        try {
+            a()
+        } catch(@A e: E) {
+            a()
+        } catch(@A e: E) {
+            a()
+        } finally {
+            a()
+        }
 
-     val x =
-         Foo
-         ::
-         class
+    val x = try
+    {
+        a()
+    }
+    catch
+        (
+            @A e: E
+        )
+    {
+        a()
+    }
+    finally
+    {
+        a()
+    }
 
-     // typeModifier // KNOWN_BUG
-     val f:
-         suspend
-         () -> Unit
-         =
-         suspend
-     { // KNOWN_BUG
-         a()
-     }
+    val x = try {
+        a()
+    } finally {
+        a()
+    }
+
+    val x = try
+    {
+        a()
+    }
+    finally
+    {
+        a()
+    }
+
+    // jumpExpression
+    val x =
+        throw
+        a()
+
+    val x =
+        return a() // Line breaks are prohibited after return.
+
+    val x =
+        return // Line breaks are prohibited after return.
+    a() // So this line should not be indented.
+
+    val x =
+        return@A a() // Line breaks are prohibited after return.
+
+    val x =
+        return@A // Line breaks are prohibited after return.
+    a() // So this line should not be indented.
+
+    val x =
+        continue
+
+    val x =
+        continue@A
+
+    val x =
+        break
+
+    val x =
+        break@A
+
+    // callableReference
+    val x =
+        Foo
+        ::
+        foo
+
+    val x =
+        Foo
+        ::
+        class
+
+    // typeModifier
+    val f:
+        suspend
+        () -> Unit
+        =
+        suspend
+        {
+            a()
+        }
 }
 
 class Foo: Base {
@@ -1007,7 +1347,7 @@ class Foo: Base {
     public
         override
         fun f() {
-    } // KNOWN_BUG
+    }
 
     public
         lateinit
@@ -1018,22 +1358,22 @@ class Foo: Base {
     override
         public
         fun f() {
-    } // KNOWN_BUG
+    }
 
     override
         private
         fun f() {
-    } // KNOWN_BUG
+    }
 
     override
         internal
         fun f() {
-    } // KNOWN_BUG
+    }
 
     override
         protected
         fun f() {
-    } // KNOWN_BUG
+    }
 
     // functionModifier
     public
@@ -1041,27 +1381,27 @@ class Foo: Base {
         infix
         inline
         fun A.f(): A {
-        return a() // KNOWN_BUG
-    } // KNOWN_BUG
+        return a()
+    }
 
     public
         operator
         fun A.unaryPlus(): A {
-        return a() // KNOWN_BUG
-    } // KNOWN_BUG
+        return a()
+    }
 
     public
         suspend
         fun foo() {
-        a() // KNOWN_BUG
-    } // KNOWN_BUG
+        a()
+    }
 }
 
 public
     external
     fun foo() {
-    a() // KNOWN_BUG
-} // KNOWN_BUG
+    a()
+}
 
 class Foo {
     // propertyModifier
@@ -1075,23 +1415,25 @@ class Foo {
 public
     abstract
     class Foo {
-        fun foo() {
-    } // KNOWN_BUG
-} // KNOWN_BUG
+    fun foo() {
+        bar()
+    }
+}
 
 public
     final
     class Foo {
-    fun foo() { // KNOWN_BUG
+    fun foo() {
+        bar()
     }
-} // KNOWN_BUG
+}
 
 public
     open
     class Foo {
-    fun foo() { // KNOWN_BUG
+    fun foo() {
     }
-} // KNOWN_BUG
+}
 
 class Foo {
     // parameterModifier
@@ -1119,9 +1461,9 @@ class Foo {
     // reificationModifier
     inline fun <
         @A
-        reified // KNOWN_BUG
-            T
-    > foo() { // KNOWN_BUG
+        reified
+            T // KNOWN_BUG_WHEN_TRUNCATED
+    > foo() {
         a()
     }
 }
@@ -1130,19 +1472,142 @@ class Foo {
 public
     expect
     class Foo {
-    fun foo() // KNOWN_BUG
-} // KNOWN_BUG
+    fun foo()
+}
 
 public
     actual
     class Foo {
-    fun foo() // KNOWN_BUG
-} // KNOWN_BUG
+    fun foo()
+}
+
+
+// Ambiguous commas, colons, curly brackets, and objects.
+
+class C: A by object: B1,
+                      B2 {
+             fun foo() {}
+         },
+         B by object: B3,
+                      B4 {
+             fun foo() {}
+         } {
+    fun <T> foo(x: T): Int {
+        return when (x) {
+            object: B1 by object: B1 {
+                        fun foo() {}
+                    },
+                    B2 {
+                fun foo() {}
+            },
+            object: B3,
+                    B4 {
+                fun foo() {}
+            } ->
+                1
+
+            else ->
+                2
+        }
+    }
+}
+
+// Curly braces may appar at:
+// classBody
+//   class (optional)
+//   interface (optional)
+//   companionObject (optional)
+//   objectDeclaration (optional)
+//   enumEntry (optional)
+//   objectLiteral
+// block
+//   init
+//   functionBody
+//     fun (optional)
+//     getter
+//     setter
+//     anonymousFunction
+//   constructor (optional)
+//   controlStructureBody (optional)
+//     for
+//     while
+//     do
+//     if
+//     else
+//     whenEntry
+//   try
+//   catch
+//   finally
+// lambda
+// when
+
+class C:
+    A by foo bar { // infix function call
+        aaa() // this is not a class body // KNOWN_BUG
+    } { // KNOWN_BUG
+    // this is the class body
+
+    fun foo() {
+        aaa()
+    }
+}
+
+// Ambiguous arrows
+
+val f = { g:
+              (Int) ->
+              (Int) ->
+              Int ->
+    g(1, 2)
+}
+
+when (x) {
+    1 ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    f as (Int) ->
+        Int ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    f(1) ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    (f) ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    is (Int) ->
+        Int ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    is Foo<(Int) ->
+               Int, // KNOWN_BUG
+           (Int) -> // KNOWN_BUG
+               Int> -> // KNOWN_BUG
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    1 < (2), (f) ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+    else ->
+        f as
+            (Int) ->
+            Int // KNOWN_BUG
+}
 
 // various identifiers
 
+val `abc` =
+    1
+
 val `abc def 'ghi "aaa ${ aaa \` = // backquotes cannot be escaped
-    a() // KNOWN_BUG
+    a()
 
 // UNICODE_CLASS_ND
 val _0123456789٠١٢٣٤٥٦٧٨٩۰۱۲۳۴۵۶۷۸۹߀߁߂߃߄߅߆߇߈߉०१२३४५६७८९০১২৩৪৫৬৭৮৯੦੧੨੩੪੫੬੭੮੯૦૧૨૩૪૫૬૭૮૯୦୧୨୩୪୫୬୭୮୯௦௧௨௩௪௫௬௭௮௯౦౧౨౩౪౫౬౭౮౯೦೧೨೩೪೫೬೭೮೯൦൧൨൩൪൫൬൭൮൯෦෧෨෩෪෫෬෭෮෯๐๑๒๓๔๕๖๗๘๙໐໑໒໓໔໕໖໗໘໙༠༡༢༣༤༥༦༧༨༩၀၁၂၃၄၅၆၇၈၉႐႑႒႓႔႕႖႗႘႙០១២៣៤៥៦៧៨៩᠐᠑᠒᠓᠔᠕᠖᠗᠘᠙᥆᥇᥈᥉᥊᥋᥌᥍᥎᥏᧐᧑᧒᧓᧔᧕᧖᧗᧘᧙᪀᪁᪂᪃᪄᪅᪆᪇᪈᪉᪐᪑᪒᪓᪔᪕᪖᪗᪘᪙᭐᭑᭒᭓᭔᭕᭖᭗᭘᭙᮰᮱᮲᮳᮴᮵᮶᮷᮸᮹᱀᱁᱂᱃᱄᱅᱆᱇᱈᱉᱐᱑᱒᱓᱔᱕᱖᱗᱘᱙꘠꘡꘢꘣꘤꘥꘦꘧꘨꘩꣐꣑꣒꣓꣔꣕꣖꣗꣘꣙꤀꤁꤂꤃꤄꤅꤆꤇꤈꤉꧐꧑꧒꧓꧔꧕꧖꧗꧘꧙꧰꧱꧲꧳꧴꧵꧶꧷꧸꧹꩐꩑꩒꩓꩔꩕꩖꩗꩘꩙꯰꯱꯲꯳꯴꯵꯶꯷꯸꯹０１２３４５６７８９𐒠𐒡𐒢𐒣𐒤𐒥𐒦𐒧𐒨𐒩 =
