@@ -2464,10 +2464,12 @@ Return the point of the beginning.
 Assuming the point is on a string."
   (goto-char (or (nth 8 (syntax-ppss)) (point)))
   (let (matching-bracket)
-    (while (setq matching-bracket
-                 (get-text-property
-                  (point)
-                  'kotlin-property--matching-bracket))
+    (while (and
+            (setq matching-bracket
+                  (get-text-property
+                   (point)
+                   'kotlin-property--matching-bracket))
+            (< (point-min) matching-bracket))
       (goto-char matching-bracket)
       (goto-char (nth 8 (syntax-ppss))))
     (point)))
@@ -2479,10 +2481,11 @@ Assuming the point is on a string."
   (goto-char (or (nth 8 (syntax-ppss)) (point)))
   (let (matching-bracket)
     (kotlin-mode--forward-string-chunk)
-    (while (setq matching-bracket
-                 (get-text-property
-                  (1- (point))
-                  'kotlin-property--matching-bracket))
+    (while (and (setq matching-bracket
+                      (get-text-property
+                       (1- (point))
+                       'kotlin-property--matching-bracket))
+                (< matching-bracket (point-max)))
       (goto-char matching-bracket)
       (kotlin-mode--forward-string-chunk)))
   (point))
