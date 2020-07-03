@@ -155,7 +155,7 @@ the scan stops where the level becomes zero."
             ;; the identifier are not a escape-syntax characters.
             (put-text-property (1+ start) (1- (point))
                                'syntax-table
-                               (string-to-syntax "|")))))
+                               (string-to-syntax "w")))))
 
        ((equal "//" (match-string-no-properties 0))
         (goto-char (match-beginning 0))
