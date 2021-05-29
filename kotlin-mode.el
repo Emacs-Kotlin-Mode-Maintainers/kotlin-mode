@@ -143,8 +143,9 @@
     (modify-syntax-entry ?\' "\"" st)
     (modify-syntax-entry ?` "\"" st)
 
-    ;; `_' as being a valid part of a word
-    (modify-syntax-entry ?_ "w" st)
+    ;; `_' and `@' as being a valid part of a symbol
+    (modify-syntax-entry ?_ "_" st)
+    (modify-syntax-entry ?@ "_" st)
 
     ;; b-style comment
     (modify-syntax-entry ?/ ". 124b" st)
@@ -259,7 +260,7 @@
     (,(rx-to-string
        `(and bow (or ,@kotlin-mode--val-decl-keywords) eow
              (+ space)
-             (group (+ word)) (* space)  (\? ":"))
+             (group (+ (or word (syntax symbol)))) (* space)  (\? ":"))
        t)
      1 font-lock-variable-name-face t)
 
