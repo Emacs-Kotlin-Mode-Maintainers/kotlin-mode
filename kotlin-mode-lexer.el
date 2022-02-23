@@ -578,7 +578,7 @@ expression as a token with one of the following types:
   '("vararg" "crossinline" "noinline"))
 
 (defconst kotlin-mode--function-modifier-keywords
-  '("tailrec" "operator" "infix" "inline" "external" "suspend"))
+  '("tailrec" "operator" "infix" "inline" "value" "external" "suspend"))
 
 (defconst kotlin-mode--modifier-keywords
   (append kotlin-mode--inheritance-modifier-keywords
@@ -644,8 +644,9 @@ expression as a token with one of the following types:
        ;; Labels
        (eq (kotlin-mode--token-type previous-token) 'label)
        ;; Modifiers
-       (member (kotlin-mode--token-text previous-token)
-               kotlin-mode--modifier-keywords))
+       (and (member (kotlin-mode--token-text previous-token)
+                    kotlin-mode--modifier-keywords)
+            (not (equal (kotlin-mode--token-text previous-token) "value"))))
       nil)
 
      ;; Tokens that cannot end a statement

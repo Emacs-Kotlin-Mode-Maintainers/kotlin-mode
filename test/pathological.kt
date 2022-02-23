@@ -425,7 +425,14 @@ public
         )
         ->
         C
+
+    // value class
+
+    value
+        class Foo { // KNOWN_BUG
+    } // KNOWN_BUG
 }
+
 
 // statements
 fun foo() {
