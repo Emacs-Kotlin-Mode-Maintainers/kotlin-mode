@@ -335,6 +335,18 @@
         (while (and (looking-at "^[ \t]*$") (not (bobp)))
           (forward-line -1)))))
 
+(defun kotlin-mode--prev-line-begins (pattern)
+  "Return whether the previous line begins with the given pattern"
+  (save-excursion
+    (kotlin-mode--prev-line)
+    (looking-at (format "^[ \t]*%s" pattern))))
+
+(defun kotlin-mode--prev-line-ends (pattern)
+  "Return whether the previous line ends with the given pattern"
+  (save-excursion
+    (kotlin-mode--prev-line)
+    (looking-at (format ".*%s[ \t]*$" pattern))))
+
 (defun kotlin-mode--line-begins (pattern)
   "Return whether the current line begins with the given pattern"
   (save-excursion
@@ -356,10 +368,13 @@
 (defun kotlin-mode--line-continuation()
   "Return whether this line continues a statement in the previous line"
   (or
-   (kotlin-mode--line-begins "\\([.=:]\\|->\\|[sg]et\\b\\)")
-   (save-excursion
-     (kotlin-mode--prev-line)
-     (kotlin-mode--line-ends "\\([=:]\\|->\\)"))))
+   (and (kotlin-mode--prev-line-begins "\\(if\\|else\\)[ \t]*")
+        (not (kotlin-mode--prev-line-ends "{.*")))
+   (or
+    (kotlin-mode--line-begins "\\([.=:]\\|->\\|\\(\\(private\\|public\\|protected\\|internal\\)[ \t]*\\)?[sg]et\\b\\)")
+    (save-excursion
+      (kotlin-mode--prev-line)
+      (kotlin-mode--line-ends "\\([=:]\\|->\\)")))))
 
 (defun kotlin-mode--base-indentation ()
   "Return the indentation level of the current line based on brackets only,
