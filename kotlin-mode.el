@@ -3,7 +3,7 @@
 ;; Copyright © 2015  Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
-;; Version: 1.0.0
+;; Version: 2.0.0
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "24.3"))
 
