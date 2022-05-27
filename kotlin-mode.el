@@ -577,36 +577,40 @@ fun foo() {
 (defun kotlin-mode--indent-line ()
   "Indent current line as kotlin code."
   (interactive)
-  (beginning-of-line)
-  (if (bobp)
-      (kotlin-mode--beginning-of-buffer-indent)
-    (let* ((bracket-counter (make-instance 'kotlin-mode--bracket-counter))
-           ;; Find bracket-based indentation first
-           (cur-indent
-            (progn
-              (kotlin-mode--count-leading-close-brackets bracket-counter)
-              (save-excursion
-                (kotlin-mode--prev-line)
-                (end-of-line)
-                (kotlin-mode--count-trailing-open-brackets bracket-counter)
-                (kotlin-mode--count-to-line-start bracket-counter)
-                (while (and (not (kotlin-mode--finished bracket-counter))
-                            (not (bobp)))
+  (save-excursion
+    (beginning-of-line)
+    (if (bobp)
+        (kotlin-mode--beginning-of-buffer-indent)
+      (let* ((bracket-counter (make-instance 'kotlin-mode--bracket-counter))
+             ;; Find bracket-based indentation first
+             (cur-indent
+              (progn
+                (kotlin-mode--count-leading-close-brackets bracket-counter)
+                (save-excursion
                   (kotlin-mode--prev-line)
                   (end-of-line)
-                  (kotlin-mode--count-to-line-start bracket-counter))
-                (oref bracket-counter indent)))))
+                  (kotlin-mode--count-trailing-open-brackets bracket-counter)
+                  (kotlin-mode--count-to-line-start bracket-counter)
+                  (while (and (not (kotlin-mode--finished bracket-counter))
+                              (not (bobp)))
+                    (kotlin-mode--prev-line)
+                    (end-of-line)
+                    (kotlin-mode--count-to-line-start bracket-counter))
+                  (oref bracket-counter indent)))))
 
-      (cond
-       ((kotlin-mode--line-continuation)
-        ;; Add extra indentation if the line continues the previous one
-        (cl-incf cur-indent kotlin-tab-width))
+        (cond
+         ((kotlin-mode--line-continuation)
+          ;; Add extra indentation if the line continues the previous one
+          (cl-incf cur-indent kotlin-tab-width))
 
-       ((kotlin-mode--in-comment-block)
-        ;; Add one space of extra indentation if inside a comment block
-        (cl-incf cur-indent)))
+         ((kotlin-mode--in-comment-block)
+          ;; Add one space of extra indentation if inside a comment block
+          (cl-incf cur-indent)))
 
-      (indent-line-to cur-indent))))
+        (indent-line-to cur-indent))))
+  ;; bol < point < indentation-start
+  (when (<= (point-at-bol) (point) (save-excursion (back-to-indentation) (point)))
+    (back-to-indentation)))
 
 (defun kotlin-mode--beginning-of-buffer-indent ()
   (indent-line-to 0))
