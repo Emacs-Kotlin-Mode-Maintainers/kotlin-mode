@@ -53,6 +53,34 @@ return a + b
     return a + b
 }")))))
 
+(ert-deftest kotlin-mode--lambda-body-indent-test ()
+  (with-temp-buffer
+    (let ((text "fun test(args: Array<String>) {
+args.forEach(arg ->
+println(arg)
+)
+"))
+      (insert text)
+      (goto-char (point-min))
+      (kotlin-mode)
+      (setq-local indent-tabs-mode nil)
+      (setq-local tab-width 4)
+      (setq-local kotlin-tab-width 4)
+
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (forward-line)
+      (kotlin-mode--indent-line)
+      (forward-line)
+      (kotlin-mode--indent-line)
+
+      (should (equal (buffer-string) "fun test(args: Array<String>) {
+    args.forEach(arg ->
+        println(arg)
+    )
+"))
+      )))
+
 (ert-deftest kotlin-mode--chained-methods ()
   (with-temp-buffer
     (let ((text "names.filter { it.empty }

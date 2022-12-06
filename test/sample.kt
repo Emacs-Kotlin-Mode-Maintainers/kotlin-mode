@@ -31,10 +31,12 @@ fun printSum(a: Int, b: Int) {
     print(veryLongResultVariableName)
 }
 
-fun functionMultiLineArgs(first: Int,
-                          second: Int,
-                          third: Int,
-                          fourth: Int) {
+fun functionMultiLineArgs(
+    first: Int,
+    second: Int,
+    third: Int,
+    fourth: Int
+) {
     print("(${first}, ${second}, ${third}, ${fourth})")
 }
 
@@ -54,9 +56,9 @@ fun main(args: Array<String>) {
 
 fun max(a: Int, b: Int): Int {
     if (a > b)
-    return a
+        return a
     else
-    return b
+        return b
 }
 
 fun max(a: Int, b: Int) = if (a > b) a else b
@@ -81,16 +83,16 @@ fun getStringLength(obj: Any): Int? {
 
 fun main(args: Array<String>) {
     for (arg in args)
-    print(arg)
+        print(arg)
 }
 
 for (i in args.indices)
-print(args[i])
+    print(args[i])
 
 fun main(args: Array<String>) {
     var i = 0
     while (i < args.size)
-    print(args[i++])
+        print(args[i++])
 }
 
 fun cases(obj: Any) {
@@ -104,19 +106,19 @@ fun cases(obj: Any) {
 }
 
 if (x in 1..y-1)
-print("OK")
+    print("OK")
 
 if (x !in 0..array.lastIndex)
-print("Out")
+    print("Out")
 
 for (x in 1..5)
-print(x)
+    print(x)
 
 for (name in names)
-println(name)
+    println(name)
 
 if (text in names) // names.contains(text) is called
-print("Yes")
+    print("Yes")
 
 names.filter { it.startsWith("A") }
     .sortedBy { it }
@@ -225,7 +227,7 @@ inline fun <reified T: Any> Gson.fromJson(json): T = this.fromJson(json, T::clas
 loop@ for (i in 1..100) {
     for (j in 1..100) {
         if (x)
-        break@loop
+            break@loop
     }
 }
 
@@ -362,7 +364,7 @@ var stringRepresentation: String
     }
 
 var setterVisibility: String = "abc"
-private set // the setter is private and has the default implementation
+    private set // the setter is private and has the default implementation
 
 var setterWithAnnotation: Any? = null
 @Inject set // annotate the setter with Inject
@@ -370,7 +372,7 @@ var setterWithAnnotation: Any? = null
 var counter = 0 // the initializer value is written directly to the backing field
     set(value) {
         if (value >= 0)
-        field = value
+            field = value
     }
 
 val isEmpty: Boolean
@@ -444,7 +446,7 @@ class D : A, B {
 private fun foo() {} // visible inside example.kt
 
 public var bar: Int = 5 // property is visible everywhere
-private set         // setter is visible only in example.kt
+    private set         // setter is visible only in example.kt
 
 internal val baz = 6    // visible inside the same module
 
@@ -589,7 +591,8 @@ window.addMouseListener(
         override fun mouseEntered(e: MouseEvent) {
             // ...
         }
-})
+    }
+)
 
 val adHoc = object {
     var x: Int = 0
@@ -610,7 +613,8 @@ fun countClicks(window: JComponent) {
             override fun mouseEntered(e: MouseEvent) {
                 enterCount++
             }
-    })
+        }
+    )
     // ...
 }
 
@@ -648,7 +652,7 @@ infix fun Int.shl(x: Int): Int {
 fun <T> asList(vararg ts: T): List<T> {
     val result = ArrayList<T>()
     for (t in ts) // ts is an Array
-    result.add(t)
+        result.add(t)
     return result
 }
 
@@ -670,7 +674,7 @@ val result = lock(lock, ::toBeSynchronized)
 fun <T, R> List<T>.map(transform: (T) -> R): List<R> {
     val result = arrayListOf<R>()
     for (item in this)
-    result.add(transform(item))
+        result.add(transform(item))
     return result
 }
 
@@ -678,13 +682,14 @@ val doubled = ints.map { it -> it * 2 }
 
 strings.filter { it.length == 5 }.sortBy { it }.map { it.toUpperCase() }
 
-max(strings, { a, b -> a.length < b.length })
+max(strings, { a, b -> a.length < b.length
+})
 
 fun <T> max(collection: Collection<T>, less: (T, T) -> Boolean): T? {
     var max: T? = null
     for (it in collection)
-    if (max == null || less(max, it))
-    max = it
+        if (max == null || less(max, it))
+        max = it
     return max
 }
 
@@ -728,12 +733,10 @@ inline fun <reified T> TreeNode.findParentOfType(): T? {
 class Test {
     fun tryAdd(a: Int?, b: Int?) : Int? {
         var result: Int? = null
-        a?.let {
-            lhs ->
-                b?.let {
-                    rhs ->
-                        result = lhs + rhs
-                }
+        a?.let { lhs ->
+            b?.let { rhs ->
+                result = lhs + rhs
+            }
         }
         return result
     }
