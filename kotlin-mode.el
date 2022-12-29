@@ -3,6 +3,7 @@
 ;; Copyright © 2015  Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
+;; Version: 2.0.0
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "24.3"))
 
@@ -28,12 +29,16 @@
 (require 'comint)
 (require 'rx)
 (require 'cc-cmds)
+(require 'cl-lib)
+(require 'eieio)
+
+(require 'kotlin-mode-lexer)
 
 (defgroup kotlin nil
   "A Kotlin major mode."
   :group 'languages)
 
-(defcustom kotlin-tab-width tab-width
+(defcustom kotlin-tab-width 4
   "The tab width to use for indentation."
   :type 'integer
   :group 'kotlin-mode
@@ -80,11 +85,11 @@
   (kotlin-do-and-repl-focus 'kotlin-send-buffer))
 
 (defun kotlin-send-block ()
+  "Send block to Kotlin interpreter."
   (interactive)
-  (let* ((p (point)))
+  (save-mark-and-excursion
     (mark-paragraph)
-    (kotlin-send-region (region-beginning) (region-end))
-    (goto-char p)))
+    (kotlin-send-region (region-beginning) (region-end))))
 
 (defun kotlin-send-block-and-focus ()
   "Send block to Kotlin interpreter and switch to it."
@@ -128,7 +133,6 @@
     (define-key map (kbd "C-c C-r") 'kotlin-send-region)
     (define-key map (kbd "C-c C-c") 'kotlin-send-block)
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
-    (define-key map (kbd "<tab>") 'c-indent-line-or-region)
     map)
   "Keymap for kotlin-mode")
 
@@ -137,16 +141,21 @@
 
     ;; Strings
     (modify-syntax-entry ?\" "\"" st)
+    (modify-syntax-entry ?\' "\"" st)
+    (modify-syntax-entry ?` "\"" st)
 
-    ;; `_' as being a valid part of a word
-    (modify-syntax-entry ?_ "w" st)
+    ;; `_' and `@' as being a valid part of a symbol
+    (modify-syntax-entry ?_ "_" st)
+    (modify-syntax-entry ?@ "_" st)
 
     ;; b-style comment
     (modify-syntax-entry ?/ ". 124b" st)
-    (modify-syntax-entry ?* ". 23" st)
+    (modify-syntax-entry ?* ". 23n" st)
     (modify-syntax-entry ?\n "> b" st)
+    (modify-syntax-entry ?\r "> b" st)
     st))
 
+(defconst kotlin-mode--closing-brackets '(?} ?\) ?\]))
 
 ;;; Font Lock
 
@@ -154,7 +163,7 @@
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("nested" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
+  '("sealed" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -173,7 +182,10 @@
     "when" "is" "in" "as" "return"))
 
 (defconst kotlin-mode--context-variables-keywords
-  '("this" "super"))
+  '("field" "it" "this" "super"))
+
+(defconst kotlin-mode--generic-type-parameter-keywords
+  '("where"))
 
 (defvar kotlin-mode--keywords
   (append kotlin-mode--misc-keywords
@@ -181,7 +193,8 @@
           kotlin-mode--fun-decl-keywords
           kotlin-mode--val-decl-keywords
           kotlin-mode--statement-keywords
-          kotlin-mode--context-variables-keywords)
+          kotlin-mode--context-variables-keywords
+          kotlin-mode--generic-type-parameter-keywords)
   "Keywords used in Kotlin language.")
 
 (defconst kotlin-mode--constants-keywords
@@ -190,19 +203,28 @@
 (defconst kotlin-mode--modifier-keywords
   '("open" "private" "protected" "public" "lateinit"
     "override" "abstract" "final" "companion"
-    "annotation" "internal" "const" "in" "out")) ;; "in" "out"
+    "annotation" "internal" "const" "in" "out"
+    "actual" "expect" "crossinline" "inline" "noinline" "external"
+    "infix" "operator" "reified" "suspend" "tailrec" "vararg"))
 
 (defconst kotlin-mode--property-keywords
-  '("by")) ;; "by" "get" "set"
+  '("by" "get" "set")) ;; "by" "get" "set"
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
 
+(defconst kotlin-mode--annotation-use-site-target-keywords
+  '("delegate" "field" "file" "get" "param" "property" "receiver" "set"
+    "setparam"))
+
+(defconst kotlin-mode--type-keywords
+  '("dynamic"))
+
 (defvar kotlin-mode--font-lock-keywords
   `(;; Keywords
     (,(rx-to-string
-     `(and bow (group (or ,@kotlin-mode--keywords)) eow)
-     t)
+       `(and bow (group (or ,@kotlin-mode--keywords)) eow)
+       t)
      1 font-lock-keyword-face)
 
     ;; Package names
@@ -214,15 +236,20 @@
 
     ;; Types
     (,(rx-to-string
-      `(and bow upper (group (* (or word "<" ">" "." "?" "!" "*"))))
-      t)
+       `(and bow upper (group (* (or word "<" ">" "." "?" "!" "*"))))
+       t)
+     0 font-lock-type-face)
+
+    (,(rx-to-string
+       `(and bow (or ,@kotlin-mode--type-keywords) eow)
+       t)
      0 font-lock-type-face)
 
     ;; Classes/Enums
     (,(rx-to-string
-      `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
-            (group (+ word)) eow)
-      t)
+       `(and bow (or ,@kotlin-mode--type-decl-keywords) eow (+ space)
+             (group (+ word)) eow)
+       t)
      1 font-lock-type-face)
 
     ;; Constants
@@ -235,7 +262,7 @@
     (,(rx-to-string
        `(and bow (or ,@kotlin-mode--val-decl-keywords) eow
              (+ space)
-             (group (+ word)) (* space)  (\? ":"))
+             (group (+ (or word (syntax symbol)))) (* space)  (\? ":"))
        t)
      1 font-lock-variable-name-face t)
 
@@ -257,11 +284,11 @@
 
     ;; Properties
     ;; by/get/set are valid identifiers being used as variable
-    ;; TODO: Highlight keywords in the property declaration statement
-    ;; (,(rx-to-string
-    ;;    `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
-    ;;    t)
-    ;;  1 font-lock-keyword-face)
+    ;; TODO: Highlight only within the property declaration statement
+    (,(rx-to-string
+       `(and bow (group (or ,@kotlin-mode--property-keywords)) eow)
+       t)
+     1 font-lock-keyword-face)
 
     ;; Constructor/Initializer blocks
     (,(rx-to-string
@@ -269,45 +296,30 @@
        t)
      1 font-lock-keyword-face)
 
+    ;; Annotation use-site targets
+    (,(rx-to-string
+       `(and "@"
+             (group (or ,@kotlin-mode--annotation-use-site-target-keywords))
+             eow)
+       t)
+     1 font-lock-keyword-face)
+
+    ;; Labels
+    (,(rx-to-string
+       `(and bow (group (+ word)) "@")
+       t)
+     1 font-lock-constant-face)
+
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
   "Default highlighting expression for `kotlin-mode'")
 
-(defun kotlin-mode--new-font-lock-keywords ()
-  '(
-    ("package\\|import" . font-lock-keyword-face)
-    ))
-
-(defun kotlin-mode--syntax-propertize-interpolation ()
-  (let* ((pos (match-beginning 0))
-         (context (save-excursion
-                    (save-match-data (syntax-ppss pos)))))
-    (when (nth 3 context)
-      (put-text-property pos
-                         (1+ pos)
-                         'kotlin-property--interpolation
-                         (match-data)))))
-
-(defun kotlin-mode--syntax-propertize-function (start end)
-  (let ((case-fold-search))
-    (goto-char start)
-    (remove-text-properties start end '(kotlin-property--interpolation))
-    (funcall
-     (syntax-propertize-rules
-      ((let ((identifier '(or
-                           (and alpha (* alnum))
-                           (and "`" (+ (not (any "`\n"))) "`"))))
-         (rx-to-string
-          `(or (group "${" ,identifier "}")
-               (group "$" ,identifier))))
-       (0 (ignore (kotlin-mode--syntax-propertize-interpolation)))))
-     start end)))
-
 (defun kotlin-mode--match-interpolation (limit)
-  (let ((pos (next-single-char-property-change (point)
-                                               'kotlin-property--interpolation
-                                               nil
-                                               limit)))
+  (let ((pos (next-single-char-property-change
+              (point)
+              'kotlin-property--interpolation
+              nil
+              limit)))
     (when (and pos (> pos (point)))
       (goto-char pos)
       (let ((value (get-text-property pos 'kotlin-property--interpolation)))
@@ -324,8 +336,130 @@
         (while (and (looking-at "^[ \t]*$") (not (bobp)))
           (forward-line -1)))))
 
+(defun kotlin-mode--prev-line-begins (pattern)
+  "Return whether the previous line begins with the given pattern"
+  (save-excursion
+    (kotlin-mode--prev-line)
+    (looking-at (format "^[ \t]*%s" pattern))))
+
+(defun kotlin-mode--prev-line-ends (pattern)
+  "Return whether the previous line ends with the given pattern"
+  (save-excursion
+    (kotlin-mode--prev-line)
+    (looking-at (format ".*%s[ \t]*$" pattern))))
+
+(defun kotlin-mode--line-begins (pattern)
+  "Return whether the current line begins with the given pattern"
+  (save-excursion
+    (beginning-of-line)
+    (looking-at (format "^[ \t]*%s" pattern))))
+
+(defun kotlin-mode--line-ends (pattern)
+  "Return whether the current line ends with the given pattern"
+  (save-excursion
+    (beginning-of-line)
+    (looking-at (format ".*%s[ \t]*$" pattern))))
+
+(defun kotlin-mode--line-contains (pattern)
+  "Return whether the current line contains the given pattern"
+  (save-excursion
+    (beginning-of-line)
+    (looking-at (format ".*%s.*" pattern))))
+
+(defun kotlin-mode--line-continuation()
+  "Return whether this line continues a statement in the previous line"
+  (or
+   (and (kotlin-mode--prev-line-begins "\\(if\\|for\\|while\\)[ \t]+(")
+        (kotlin-mode--prev-line-ends ")[[:space:]]*\\(\/\/.*\\|\\/\\*.*\\)?"))
+   (and (kotlin-mode--prev-line-begins "else[ \t]*")
+        (not (kotlin-mode--prev-line-begins "else [ \t]*->"))
+        (not (kotlin-mode--prev-line-ends "{.*")))
+   (or
+    (kotlin-mode--line-begins "\\([.=:]\\|->\\|\\(\\(private\\|public\\|protected\\|internal\\)[ \t]*\\)?[sg]et\\b\\)"))))
+
+(defun kotlin-mode--in-comment-block ()
+  "Return whether the cursor is within a standard comment block structure
+   of the following format:
+   /**
+    * Description here
+    */"
+  (save-excursion
+    (let ((in-comment-block nil)
+          (keep-going (and
+                       (not (kotlin-mode--line-begins "\\*\\*+/"))
+                       (not (kotlin-mode--line-begins "/\\*"))
+                       (nth 4 (syntax-ppss)))))
+      (while keep-going
+        (kotlin-mode--prev-line)
+        (cond
+         ((kotlin-mode--line-begins "/\\*")
+          (setq keep-going nil)
+          (setq in-comment-block t))
+         ((bobp)
+          (setq keep-going nil))
+         ((kotlin-mode--line-contains "\\*/")
+          (setq keep-going nil))))
+      in-comment-block)))
+
+(defun kotlin-mode--first-line-p ()
+  "Determine if point is on the first line."
+  (save-excursion
+    (beginning-of-line)
+    (bobp)
+    )
+  )
+
+(defun kotlin-mode--line-closes-block-p ()
+  "Return whether or not the start of the line closes its containing block."
+  (save-excursion
+    (back-to-indentation)
+    (memq (following-char) kotlin-mode--closing-brackets)
+    ))
+
+(defun kotlin-mode--get-opening-char-indentation (parser-state-index)
+  "Determine the indentation of the line that starts the current block.
+
+Caller must pass in PARSER-STATE-INDEX, which refers to the index
+of the list returned by `syntax-ppss'.
+
+If it does not exist, will return nil."
+  (save-excursion
+    (back-to-indentation)
+    (let ((opening-pos (nth parser-state-index (syntax-ppss))))
+      (when opening-pos
+        (goto-char opening-pos)
+        (current-indentation)))
+    )
+  )
+
+(defun kotlin-mode--indent-for-continuation ()
+  "Return the expected indentation for a continuation."
+  (kotlin-mode--prev-line)
+  (if (kotlin-mode--line-continuation)
+      (kotlin-mode--indent-for-continuation)
+    (+ kotlin-tab-width (current-indentation)))
+  )
+
+(defun kotlin-mode--indent-for-code ()
+  "Return the level that this line of code should be indented to."
+  (let ((indent-opening-block (kotlin-mode--get-opening-char-indentation 1)))
+    (cond
+     ((kotlin-mode--line-continuation) (save-excursion (kotlin-mode--indent-for-continuation)))
+     ((booleanp indent-opening-block) 0)
+     ((kotlin-mode--line-closes-block-p) indent-opening-block)
+     (t (+ indent-opening-block kotlin-tab-width)))
+    ))
+
+(defun kotlin-mode--indent-for-comment ()
+  "Return the level that this line of comment should be indented to."
+  (let ((opening-indentation (kotlin-mode--get-opening-char-indentation 8)))
+    (if opening-indentation
+        (1+ opening-indentation)
+      0)
+    ))
+
 (defun kotlin-mode--indent-line ()
-  "Indent current line as kotlin code"
+  "Indent the current line of Kotlin code."
   (interactive)
   (let ((follow-indentation-p
          (and (<= (line-beginning-position) (point))
@@ -410,7 +544,11 @@
   "Major mode for editing Kotlin."
 
   (setq font-lock-defaults '((kotlin-mode--font-lock-keywords) nil nil))
-  (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize-function)
+  (setq-local parse-sexp-lookup-properties t)
+  (add-hook 'syntax-propertize-extend-region-functions
+            #'kotlin-mode--syntax-propertize-extend-region
+            nil t)
+  (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize)
   (set (make-local-variable 'comment-start) "//")
   (set (make-local-variable 'comment-padding) 1)
   (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")

@@ -1,2 +1,4 @@
 .cask/
 dist/
+*~
+*.elc
