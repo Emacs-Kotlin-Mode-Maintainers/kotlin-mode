@@ -685,7 +685,7 @@ expression as a token with one of the following types:
         (kotlin-mode--token-text previous-token)
         '("(" "{" "[" "*" "%" "/" "+" "-" "&&" "||" ":" "&"
           "=" "+=" "-=" "*=" "/=" "%="
-          "->" "." ".." "::" "?:" "?." "<=" ">=" "!=" "!==" "==" "==="
+          "->" "." ".." "..<" "::" "?:" "?." "<=" ">=" "!=" "!==" "==" "==="
           "as" "as?" "is" "!is" "in" "!in" "," ";" "{" "[" "("
           ;; "class" will be handled later.
           "package" "import" "interface" "fun" "object"
@@ -791,7 +791,7 @@ expression as a token with one of the following types:
           (member
            (kotlin-mode--token-text next-token)
            '("*" "%" "/" "&" "&&" "||" ":" "=" "+=" "-=" "*=" "/=" "%="
-             "->" "." ".." "::" "?:" "?." "?" "<" ">" "<=" ">="
+             "->" "." ".." "..<" "::" "?:" "?." "?" "<" ">" "<=" ">="
              "!=" "!==" "==" "==="
              "," ";" ")" "]" "}"
              "as" "as?" "get" "set" "by" "where" "else" "catch" "finally"
@@ -1487,7 +1487,7 @@ It is a type parameter list if:
     "is" "!is" "!in" "as" "as?"
     "!"
     "=" "+=" "-=" "*=" "/=" "%="
-    ".." "::" "?:" "?." "<=" ">=" "==" "==="
+    ".." "..<" "::" "?:" "?." "<=" ">=" "==" "==="
     "package" "import" "class" "interface" "fun" "object" "val" "var"
     "typealias" "constructor" "by" "companion" "init" "if" "else" "when"
     "try" "catch" "finally" "for" "do" "while" "throw"
@@ -1825,9 +1825,9 @@ This function does not return `implicit-;'."
        "!==" "!="
        (seq "!is" word-end) (seq "!in" word-end) "as?"
        "!"
-       "=" "+=" "-=" "*=" "/=" "%="
        "->"
-       ".." "." "?:" "?." "?" "<" ">" "<=" ">=" "==" "==="
+       "..<" ".." "." "?:" "?." "?" "<" ">" "<=" ">=" "===" "=="
+       "=" "+=" "-=" "*=" "/=" "%="
        "*" "%" "/" "+" "-" "&")))
     (let ((text (match-string-no-properties 0))
           (start (match-beginning 0))
@@ -2151,6 +2151,35 @@ This function does not return `implicit-;'"
                    :start (point)
                    :end (1+ (point))))
 
+   ;; Operator (3 letters)
+   ((member (buffer-substring-no-properties
+             (max (point-min) (- (point) 3))
+             (point))
+            '("===" "!==" "!is" "!in" "..<"))
+    (backward-char 3)
+    (make-instance 'kotlin-mode--token
+                   :type 'operator
+                   :text (buffer-substring-no-properties (point) (+ 3 (point)))
+                   :start (point)
+                   :end (+ 3 (point))))
+
+   ;; Operator (2 letters, other than as, in, or is)
+   ((member (buffer-substring-no-properties
+             (max (point-min) (- (point) 2))
+             (point))
+            '("++" "--"
+              "&&" "||"
+              "+=" "-=" "*=" "/=" "%="
+              ".." "?."
+              "<=" ">=" "!=" "=="
+              "->"))
+    (backward-char 2)
+    (make-instance 'kotlin-mode--token
+                   :type 'operator
+                   :text (buffer-substring-no-properties (point) (+ 2 (point)))
+                   :start (point)
+                   :end (+ 2 (point))))
+
    ;; Open angle bracket for type parameters
    ;;
    ;; We use a heuristic: spaces are inserted around inequality sign,
@@ -2184,35 +2213,6 @@ This function does not return `implicit-;'"
                    :text ">"
                    :start (point)
                    :end (1+ (point))))
-
-   ;; Operator (3 letters)
-   ((member (buffer-substring-no-properties
-             (max (point-min) (- (point) 3))
-             (point))
-            '("===" "!==" "!is" "!in"))
-    (backward-char 3)
-    (make-instance 'kotlin-mode--token
-                   :type 'operator
-                   :text (buffer-substring-no-properties (point) (+ 3 (point)))
-                   :start (point)
-                   :end (+ 3 (point))))
-
-   ;; Operator (2 letters, other than as, in, or is)
-   ((member (buffer-substring-no-properties
-             (max (point-min) (- (point) 2))
-             (point))
-            '("++" "--"
-              "&&" "||"
-              "+=" "-=" "*=" "/=" "%="
-              ".." "?."
-              "<=" ">=" "!=" "=="
-              "->"))
-    (backward-char 2)
-    (make-instance 'kotlin-mode--token
-                   :type 'operator
-                   :text (buffer-substring-no-properties (point) (+ 2 (point)))
-                   :start (point)
-                   :end (+ 2 (point))))
 
    ;; ? or as?
    ((eq (char-before) ??)

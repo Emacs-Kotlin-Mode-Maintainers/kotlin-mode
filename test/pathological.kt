@@ -667,23 +667,29 @@ fun foo() {
     val x =
         a shl // Line breaks are allowed after infix function.
         b // KNOWN_BUG
+    val y = 1 // KNOWN_BUG
 
-     var shl = 1 // KNOWN_BUG
-     val x = shl shl shl
-     shl < 100 && foo() // this is not a continuation of the previous line.
+    var shl = 1
+    val x = shl shl shl
+    shl < 100 && foo() // this is not a continuation of the previous line.
 
-     var shl = 1
-     val x = shl shl
-         shl < 100 && foo() // this is a continuation of the previous line. // KNOWN_BUG
+    var shl = 1
+    val x = shl shl
+        shl < 100 && foo() // this is a continuation of the previous line. // KNOWN_BUG
+    val y = 1 // KNOWN_BUG
 
-    // This is not a infix function call; line breaks are // KNOWN_BUG
+    // This is not a infix function call; line breaks are
     // prohibited before infix function.
-    val x = // KNOWN_BUG
+    val x =
         a
     f (b) // So this line should not indented.
 
     val x =
         a .. // Line breaks are prohibited before range operator.
+        b
+
+    val x =
+        a ..< // Line breaks are prohibited before closed range operator.
         b
 
     val x =
