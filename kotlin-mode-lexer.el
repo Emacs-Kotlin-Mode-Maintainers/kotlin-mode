@@ -683,7 +683,7 @@ expression as a token with one of the following types:
         '(implicit-\; string-chunk-before-template-expression))
        (member
         (kotlin-mode--token-text previous-token)
-        '("(" "{" "[" "*" "%" "/" "+" "-" "&&" "||" ":"
+        '("(" "{" "[" "*" "%" "/" "+" "-" "&&" "||" ":" "&"
           "=" "+=" "-=" "*=" "/=" "%="
           "->" "." ".." "::" "?:" "?." "<=" ">=" "!=" "!==" "==" "==="
           "as" "as?" "is" "!is" "in" "!in" "," ";" "{" "[" "("
@@ -790,7 +790,7 @@ expression as a token with one of the following types:
            '(implicit-\; string-chunk-after-template-expression))
           (member
            (kotlin-mode--token-text next-token)
-           '("*" "%" "/" "&&" "||" ":" "=" "+=" "-=" "*=" "/=" "%="
+           '("*" "%" "/" "&" "&&" "||" ":" "=" "+=" "-=" "*=" "/=" "%="
              "->" "." ".." "::" "?:" "?." "?" "<" ">" "<=" ">="
              "!=" "!==" "==" "==="
              "," ";" ")" "]" "}"
@@ -1828,7 +1828,7 @@ This function does not return `implicit-;'."
        "=" "+=" "-=" "*=" "/=" "%="
        "->"
        ".." "." "?:" "?." "?" "<" ">" "<=" ">=" "==" "==="
-       "*" "%" "/" "+" "-")))
+       "*" "%" "/" "+" "-" "&")))
     (let ((text (match-string-no-properties 0))
           (start (match-beginning 0))
           (end (match-end 0)))
@@ -2233,7 +2233,7 @@ This function does not return `implicit-;'"
    ((member (buffer-substring-no-properties
              (max (point-min) (- (point) 1))
              (point))
-            '("*" "%" "/" "+" "-" "!" "=" "." "?" "<" ">"))
+            '("*" "%" "/" "+" "-" "!" "=" "." "?" "<" ">" "&"))
     (backward-char)
     (make-instance 'kotlin-mode--token
                    :type 'operator

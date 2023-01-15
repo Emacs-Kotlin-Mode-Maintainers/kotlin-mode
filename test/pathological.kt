@@ -426,6 +426,15 @@ public
         ->
         C
 
+    // definitelyNonNullableType
+    fun foo(
+        x:
+            A
+            &
+            Any
+    ) {
+    }
+
     // value class
 
     value
