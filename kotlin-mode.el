@@ -1,11 +1,12 @@
 ;;; kotlin-mode.el --- Major mode for kotlin -*- lexical-binding: t; -*-
 
-;; Copyright © 2015  Shodai Yokoyama
+;; Copyright © 2015 Shodai Yokoyama
 
 ;; Author: Shodai Yokoyama (quantumcars@gmail.com)
 ;; Version: 2.0.0
 ;; Keywords: languages
 ;; Package-Requires: ((emacs "24.3"))
+;; URL: https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode
 
 ;; This program is free software; you can redistribute it and/or modify
 ;; it under the terms of the GNU General Public License as published by
@@ -22,7 +23,7 @@
 
 ;;; Commentary:
 
-;;
+;; Major-mode for Kotlin programming language.
 
 ;;; Code:
 
@@ -33,6 +34,7 @@
 (require 'eieio)
 
 (require 'kotlin-mode-lexer)
+(require 'kotlin-mode-indent)
 
 (defgroup kotlin nil
   "A Kotlin major mode."
@@ -59,18 +61,25 @@
   :type 'string
   :group 'kotlin)
 
+;; REPL
+
 (defun kotlin-do-and-repl-focus (f &rest args)
+  "Call function F with ARGS and pop to the REPL buffer."
   (apply f args)
   (pop-to-buffer kotlin-repl-buffer))
 
 (defun kotlin-send-region (start end)
-  "Send current region to Kotlin interpreter."
+  "Send current region to Kotlin interpreter.
+
+START and END define region within current buffer."
   (interactive "r")
   (comint-send-region kotlin-repl-buffer start end)
   (comint-send-string kotlin-repl-buffer "\n"))
 
 (defun kotlin-send-region-and-focus (start end)
-  "Send current region to Kotlin interpreter and switch to it."
+  "Send current region to Kotlin interpreter and switch to it.
+
+START and END define region within current buffer."
   (interactive "r")
   (kotlin-do-and-repl-focus 'kotlin-send-region start end))
 
@@ -97,6 +106,7 @@
   (kotlin-do-and-repl-focus 'kotlin-send-block))
 
 (defun kotlin-send-line ()
+  "Send current line to Kotlin interpreter."
   (interactive)
   (kotlin-send-region
    (line-beginning-position)
@@ -121,10 +131,12 @@
             kotlin-args-repl))
 
     (set (make-local-variable 'comint-preoutput-filter-functions)
-         (cons (lambda (string)
-                 (replace-regexp-in-string "\x1b\\[.[GJK]" "" string)) nil)))
+         (list (lambda (string)
+                 (replace-regexp-in-string "\x1b\\[.[GJK]" "" string)))))
 
   (pop-to-buffer kotlin-repl-buffer))
+
+;; Keymap
 
 (defvar kotlin-mode-map
   (let ((map (make-keymap)))
@@ -133,37 +145,18 @@
     (define-key map (kbd "C-c C-r") 'kotlin-send-region)
     (define-key map (kbd "C-c C-c") 'kotlin-send-block)
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
+    (define-key map [remap indent-new-comment-line]
+      #'kotlin-mode--indent-new-comment-line)
     map)
-  "Keymap for kotlin-mode")
-
-(defvar kotlin-mode-syntax-table
-  (let ((st (make-syntax-table)))
-
-    ;; Strings
-    (modify-syntax-entry ?\" "\"" st)
-    (modify-syntax-entry ?\' "\"" st)
-    (modify-syntax-entry ?` "\"" st)
-
-    ;; `_' and `@' as being a valid part of a symbol
-    (modify-syntax-entry ?_ "_" st)
-    (modify-syntax-entry ?@ "_" st)
-
-    ;; b-style comment
-    (modify-syntax-entry ?/ ". 124b" st)
-    (modify-syntax-entry ?* ". 23n" st)
-    (modify-syntax-entry ?\n "> b" st)
-    (modify-syntax-entry ?\r "> b" st)
-    st))
-
-(defconst kotlin-mode--closing-brackets '(?} ?\) ?\]))
+  "Keymap for `kotlin-mode'.")
 
 ;;; Font Lock
 
-(defconst kotlin-mode--misc-keywords
+(defconst kotlin-mode--package-keywords
   '("package" "import"))
 
 (defconst kotlin-mode--type-decl-keywords
-  '("sealed" "inner" "data" "class" "interface" "trait" "typealias" "enum" "object"))
+  '("class" "interface" "typealias" "object"))
 
 (defconst kotlin-mode--fun-decl-keywords
   '("fun"))
@@ -187,8 +180,8 @@
 (defconst kotlin-mode--generic-type-parameter-keywords
   '("where"))
 
-(defvar kotlin-mode--keywords
-  (append kotlin-mode--misc-keywords
+(defvar kotlin-mode--misc-keywords
+  (append kotlin-mode--package-keywords
           kotlin-mode--type-decl-keywords
           kotlin-mode--fun-decl-keywords
           kotlin-mode--val-decl-keywords
@@ -200,15 +193,14 @@
 (defconst kotlin-mode--constants-keywords
   '("null" "true" "false"))
 
-(defconst kotlin-mode--modifier-keywords
-  '("open" "private" "protected" "public" "lateinit"
-    "override" "abstract" "final" "companion"
-    "annotation" "internal" "const" "in" "out"
-    "actual" "expect" "crossinline" "inline" "noinline" "external"
-    "infix" "operator" "reified" "suspend" "tailrec" "vararg"))
+(defconst kotlin-mode--variance-modifier-keywords
+  '("in" "out"))
+
+(defconst kotlin-mode--reification-modifier-keywords
+  '("reified"))
 
 (defconst kotlin-mode--property-keywords
-  '("by" "get" "set")) ;; "by" "get" "set"
+  '("by" "get" "set"))
 
 (defconst kotlin-mode--initializer-keywords
   '("init" "constructor"))
@@ -223,13 +215,13 @@
 (defvar kotlin-mode--font-lock-keywords
   `(;; Keywords
     (,(rx-to-string
-       `(and bow (group (or ,@kotlin-mode--keywords)) eow)
+       `(and bow (group (or ,@kotlin-mode--misc-keywords)) eow)
        t)
      1 font-lock-keyword-face)
 
     ;; Package names
     (,(rx-to-string
-       `(and (or ,@kotlin-mode--misc-keywords) (+ space)
+       `(and (or ,@kotlin-mode--package-keywords) (+ space)
              (group (+ (any word ?.))))
        t)
      1 font-lock-string-face)
@@ -273,11 +265,14 @@
        t)
      1 font-lock-function-name-face)
 
-    ;; Access modifier
-    ;; Access modifier is valid identifier being used as variable
+    ;; Modifiers
+    ;; Modifier is valid identifier being used as variable
     ;; TODO: Highlight only modifiers in the front of class/fun
     (,(rx-to-string
-       `(and bow (group (or ,@kotlin-mode--modifier-keywords))
+       `(and bow (group (or ,@kotlin-mode--modifier-keywords
+                            ,@kotlin-mode--companion-modifier-keywords
+                            ,@kotlin-mode--variance-modifier-keywords
+                            ,@kotlin-mode--reification-modifier-keywords))
              eow)
        t)
      1 font-lock-keyword-face)
@@ -312,9 +307,14 @@
 
     ;; String interpolation
     (kotlin-mode--match-interpolation 0 font-lock-variable-name-face t))
-  "Default highlighting expression for `kotlin-mode'")
+  "Default highlighting expression for `kotlin-mode'.")
 
 (defun kotlin-mode--match-interpolation (limit)
+  "Find template expression before LIMIT.
+
+Template expressions must be propertized by `kotlin-mode--syntax-propertize'.
+If a template expression is found, move to that point, set `match-data',
+and return non-nil.  Return nil otherwise."
   (let ((pos (next-single-char-property-change
               (point)
               'kotlin-property--interpolation
@@ -328,233 +328,56 @@
                    t)
           (kotlin-mode--match-interpolation limit))))))
 
-(defun kotlin-mode--prev-line ()
-  "Moves up to the nearest non-empty line"
-  (if (not (bobp))
-      (progn
-        (forward-line -1)
-        (while (and (looking-at "^[ \t]*$") (not (bobp)))
-          (forward-line -1)))))
 
-(defun kotlin-mode--prev-line-begins (pattern)
-  "Return whether the previous line begins with the given pattern"
-  (save-excursion
-    (kotlin-mode--prev-line)
-    (looking-at (format "^[ \t]*%s" pattern))))
-
-(defun kotlin-mode--prev-line-ends (pattern)
-  "Return whether the previous line ends with the given pattern"
-  (save-excursion
-    (kotlin-mode--prev-line)
-    (looking-at (format ".*%s[ \t]*$" pattern))))
-
-(defun kotlin-mode--line-begins (pattern)
-  "Return whether the current line begins with the given pattern"
-  (save-excursion
-    (beginning-of-line)
-    (looking-at (format "^[ \t]*%s" pattern))))
-
-(defun kotlin-mode--line-ends (pattern)
-  "Return whether the current line ends with the given pattern"
-  (save-excursion
-    (beginning-of-line)
-    (looking-at (format ".*%s[ \t]*$" pattern))))
-
-(defun kotlin-mode--line-contains (pattern)
-  "Return whether the current line contains the given pattern"
-  (save-excursion
-    (beginning-of-line)
-    (looking-at (format ".*%s.*" pattern))))
-
-(defun kotlin-mode--line-continuation()
-  "Return whether this line continues a statement in the previous line"
-  (or
-   (and (kotlin-mode--prev-line-begins "\\(if\\|for\\|while\\)[ \t]+(")
-        (kotlin-mode--prev-line-ends ")[[:space:]]*\\(\/\/.*\\|\\/\\*.*\\)?"))
-   (and (kotlin-mode--prev-line-begins "else[ \t]*")
-        (not (kotlin-mode--prev-line-begins "else [ \t]*->"))
-        (not (kotlin-mode--prev-line-ends "{.*")))
-   (or
-    (kotlin-mode--line-begins "\\([.=:]\\|->\\|\\(\\(private\\|public\\|protected\\|internal\\)[ \t]*\\)?[sg]et\\b\\)"))))
-
-(defun kotlin-mode--in-comment-block ()
-  "Return whether the cursor is within a standard comment block structure
-   of the following format:
-   /**
-    * Description here
-    */"
-  (save-excursion
-    (let ((in-comment-block nil)
-          (keep-going (and
-                       (not (kotlin-mode--line-begins "\\*\\*+/"))
-                       (not (kotlin-mode--line-begins "/\\*"))
-                       (nth 4 (syntax-ppss)))))
-      (while keep-going
-        (kotlin-mode--prev-line)
-        (cond
-         ((kotlin-mode--line-begins "/\\*")
-          (setq keep-going nil)
-          (setq in-comment-block t))
-         ((bobp)
-          (setq keep-going nil))
-         ((kotlin-mode--line-contains "\\*/")
-          (setq keep-going nil))))
-      in-comment-block)))
-
-(defun kotlin-mode--first-line-p ()
-  "Determine if point is on the first line."
-  (save-excursion
-    (beginning-of-line)
-    (bobp)
-    )
-  )
-
-(defun kotlin-mode--line-closes-block-p ()
-  "Return whether or not the start of the line closes its containing block."
-  (save-excursion
-    (back-to-indentation)
-    (memq (following-char) kotlin-mode--closing-brackets)
-    ))
-
-(defun kotlin-mode--get-opening-char-indentation (parser-state-index)
-  "Determine the indentation of the line that starts the current block.
-
-Caller must pass in PARSER-STATE-INDEX, which refers to the index
-of the list returned by `syntax-ppss'.
-
-If it does not exist, will return nil."
-  (save-excursion
-    (back-to-indentation)
-    (let ((opening-pos (nth parser-state-index (syntax-ppss))))
-      (when opening-pos
-        (goto-char opening-pos)
-        (current-indentation)))
-    )
-  )
-
-(defun kotlin-mode--indent-for-continuation ()
-  "Return the expected indentation for a continuation."
-  (kotlin-mode--prev-line)
-  (if (kotlin-mode--line-continuation)
-      (kotlin-mode--indent-for-continuation)
-    (+ kotlin-tab-width (current-indentation)))
-  )
-
-(defun kotlin-mode--indent-for-code ()
-  "Return the level that this line of code should be indented to."
-  (let ((indent-opening-block (kotlin-mode--get-opening-char-indentation 1)))
-    (cond
-     ((kotlin-mode--line-continuation) (save-excursion (kotlin-mode--indent-for-continuation)))
-     ((booleanp indent-opening-block) 0)
-     ((kotlin-mode--line-closes-block-p) indent-opening-block)
-     (t (+ indent-opening-block kotlin-tab-width)))
-    ))
-
-(defun kotlin-mode--indent-for-comment ()
-  "Return the level that this line of comment should be indented to."
-  (let ((opening-indentation (kotlin-mode--get-opening-char-indentation 8)))
-    (if opening-indentation
-        (1+ opening-indentation)
-      0)
-    ))
-
-(defun kotlin-mode--indent-line ()
-  "Indent the current line of Kotlin code."
-  (interactive)
-  (let ((follow-indentation-p
-         (and (<= (line-beginning-position) (point))
-              (>= (+ (line-beginning-position)
-                     (current-indentation))
-                  (point)))))
-    (save-excursion
-      (beginning-of-line)
-      (if (bobp) ; 1.)
-          (progn
-            (kotlin-mode--beginning-of-buffer-indent))
-        (let ((not-indented t) cur-indent)
-          (cond ((looking-at "^[ \t]*\\.") ; line starts with .
-                 (save-excursion
-                   (kotlin-mode--prev-line)
-                   (cond ((looking-at "^[ \t]*\\.")
-                          (setq cur-indent (current-indentation)))
-
-                         (t
-                          (setq cur-indent (+ (current-indentation) (* 2 kotlin-tab-width)))))
-                   (if (< cur-indent 0)
-                       (setq cur-indent 0))))
-
-                ((looking-at "^[ \t]*}") ; line starts with }
-                 (save-excursion
-                   (kotlin-mode--prev-line)
-                   (while (and (or (looking-at "^[ \t]*$") (looking-at "^[ \t]*\\.")) (not (bobp)))
-                     (kotlin-mode--prev-line))
-                   (cond ((or (looking-at ".*{[ \t]*$") (looking-at ".*{.*->[ \t]*$"))
-                          (setq cur-indent (current-indentation)))
-                         (t
-                          (setq cur-indent (- (current-indentation) kotlin-tab-width)))))
-                 (if (< cur-indent 0)
-                     (setq cur-indent 0)))
-
-                ((looking-at "^[ \t]*)") ; line starts with )
-                 (save-excursion
-                   (kotlin-mode--prev-line)
-                   (setq cur-indent (- (current-indentation) kotlin-tab-width)))
-                 (if (< cur-indent 0)
-                     (setq cur-indent 0)))
-
-                (t
-                 (save-excursion
-                   (while not-indented
-                     (kotlin-mode--prev-line)
-                     (cond ((looking-at ".*{[ \t]*$") ; line ends with {
-                            (setq cur-indent (+ (current-indentation) kotlin-tab-width))
-                            (setq not-indented nil))
-
-                           ((looking-at "^[ \t]*}") ; line starts with }
-                            (setq cur-indent (current-indentation))
-                            (setq not-indented nil))
-
-                           ((looking-at ".*{.*->[ \t]*$") ; line ends with ->
-                            (setq cur-indent (+ (current-indentation) kotlin-tab-width))
-                            (setq not-indented nil))
-
-                           ((looking-at ".*([ \t]*$") ; line ends with (
-                            (setq cur-indent (+ (current-indentation) kotlin-tab-width))
-                            (setq not-indented nil))
-
-                           ((looking-at "^[ \t]*).*$") ; line starts with )
-                            (setq cur-indent (current-indentation))
-                            (setq not-indented nil))
-
-                           ((bobp) ; 5.)
-                            (setq not-indented nil)))))))
-          (if cur-indent
-              (indent-line-to cur-indent)
-            (indent-line-to 0)))))
-
-    (when follow-indentation-p
-      (back-to-indentation))))
-
-
-(defun kotlin-mode--beginning-of-buffer-indent ()
-  (indent-line-to 0))
+;; the Kotlin mode
 
 ;;;###autoload
 (define-derived-mode kotlin-mode prog-mode "Kotlin"
   "Major mode for editing Kotlin."
 
   (setq font-lock-defaults '((kotlin-mode--font-lock-keywords) nil nil))
+
   (setq-local parse-sexp-lookup-properties t)
   (add-hook 'syntax-propertize-extend-region-functions
             #'kotlin-mode--syntax-propertize-extend-region
             nil t)
   (setq-local syntax-propertize-function #'kotlin-mode--syntax-propertize)
-  (set (make-local-variable 'comment-start) "//")
-  (set (make-local-variable 'comment-padding) 1)
-  (set (make-local-variable 'comment-start-skip) "\\(//+\\|/\\*+\\)\\s *")
-  (set (make-local-variable 'comment-end) "")
-  (set (make-local-variable 'indent-line-function) 'kotlin-mode--indent-line)
-  (setq-local adaptive-fill-regexp comment-start-skip)
+
+  (setq-local comment-start "//")
+  (setq-local comment-end "")
+  (setq-local comment-padding 1)
+  (setq-local comment-start-skip
+              (rx (seq (zero-or-more (syntax whitespace))
+                       (or
+                        ;; Single-line comment
+                        (seq "/" (one-or-more "/"))
+                        ;; Multi-line comment
+                        (seq "/" (one-or-more "*"))
+                        ;; Middle of multi-line-comment
+                        (seq (one-or-more "*") " "))
+                       (zero-or-more (syntax whitespace)))))
+  (setq-local adaptive-fill-regexp
+              (rx (seq (zero-or-more (syntax whitespace))
+                       (or
+                        ;; Single-line comment
+                        (seq "/" (one-or-more "/"))
+                        ;; Middle of multi-line-comment
+                        (seq (one-or-more "*") " "))
+                       (zero-or-more (syntax whitespace)))))
+  (setq-local fill-indent-according-to-mode t)
+  (setq-local comment-multi-line t)
+
+  (setq-local indent-line-function 'kotlin-mode--indent-line)
+
+  (setq-local electric-indent-chars
+              (append "{}()[]:;,." electric-indent-chars))
+
+  (add-hook 'post-self-insert-hook #'kotlin-mode--post-self-insert nil t)
+
+  (setq-local kotlin-mode--anchor-overlay
+              (make-overlay (point-min) (point-min) nil t))
+
+  (delete-overlay kotlin-mode--anchor-overlay)
 
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table)

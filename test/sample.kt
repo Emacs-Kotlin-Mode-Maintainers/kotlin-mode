@@ -13,7 +13,7 @@ import bar.Bar as bBar
 /****************************************************************
  Multiline comment
  without leading "*"
-****************************************************************/
+****************************************************************/ // KNOWN_BUG
 
 fun sum(a: Int, b: Int): Int {
     return a + b
@@ -367,7 +367,7 @@ var setterVisibility: String = "abc"
     private set // the setter is private and has the default implementation
 
 var setterWithAnnotation: Any? = null
-@Inject set // annotate the setter with Inject
+    @Inject set // annotate the setter with Inject
 
 var counter = 0 // the initializer value is written directly to the backing field
     set(value) {
@@ -555,8 +555,8 @@ fun <T : Comparable<T>> sort(list: List<T>) {
 }
 
 fun <T> cloneWhenGreater(list: List<T>, threshold: T): List<T>
-where T : Comparable,
-T : Cloneable {
+    where T : Comparable,
+          T : Cloneable {
     return list.filter { it > threshold }.map { it.clone() }
 }
 
@@ -591,8 +591,7 @@ window.addMouseListener(
         override fun mouseEntered(e: MouseEvent) {
             // ...
         }
-    }
-)
+    })
 
 val adHoc = object {
     var x: Int = 0
@@ -613,8 +612,7 @@ fun countClicks(window: JComponent) {
             override fun mouseEntered(e: MouseEvent) {
                 enterCount++
             }
-        }
-    )
+        })
     // ...
 }
 
@@ -683,13 +681,13 @@ val doubled = ints.map { it -> it * 2 }
 strings.filter { it.length == 5 }.sortBy { it }.map { it.toUpperCase() }
 
 max(strings, { a, b -> a.length < b.length
-})
+             })
 
 fun <T> max(collection: Collection<T>, less: (T, T) -> Boolean): T? {
     var max: T? = null
     for (it in collection)
         if (max == null || less(max, it))
-        max = it
+            max = it
     return max
 }
 
@@ -733,8 +731,10 @@ inline fun <reified T> TreeNode.findParentOfType(): T? {
 class Test {
     fun tryAdd(a: Int?, b: Int?) : Int? {
         var result: Int? = null
-        a?.let { lhs ->
-            b?.let { rhs ->
+        a?.let {
+            lhs ->
+            b?.let {
+                rhs ->
                 result = lhs + rhs
             }
         }
