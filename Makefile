@@ -54,3 +54,15 @@ test:
 	  -f batch-byte-compile \
 	  *.el
 	cask exec ert-runner -L . -L test
+
+lint:
+## Run linters.
+	rm -f *.elc
+	rm -f kotlin-mode-autoloads.el
+	$(CASK) exec $(EMACS) --batch -Q \
+	  -l elisp-lint.el \
+	  --eval '(setq elisp-lint--debug t)' \
+	  -f elisp-lint-files-batch \
+	  *.el
+	rm -f *.elc
+	rm -f kotlin-mode-autoloads.el
