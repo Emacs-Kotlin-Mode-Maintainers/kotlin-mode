@@ -93,10 +93,20 @@ START and END define region within current buffer."
   (interactive)
   (kotlin-do-and-repl-focus 'kotlin-send-buffer))
 
+(defmacro kotlin-mode--save-mark-and-excursion (&rest body)
+  "Polyfill of `save-mark-and-excursion' for <25.1.
+
+For argument BODY, see `save-mark-and-excursion'."
+  (declare (indent 0) (debug t))
+  (let ((save-mark-and-excursion (if (fboundp 'save-mark-and-excursion)
+                                     #'save-mark-and-excursion
+                                   #'save-excursion)))
+    (cons save-mark-and-excursion body)))
+
 (defun kotlin-send-block ()
   "Send block to Kotlin interpreter."
   (interactive)
-  (save-mark-and-excursion
+  (kotlin-mode--save-mark-and-excursion
     (mark-paragraph)
     (kotlin-send-region (region-beginning) (region-end))))
 
