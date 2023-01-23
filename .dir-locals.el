@@ -1,0 +1,8 @@
+((emacs-lisp-mode . ((package-lint-main-file . "kotlin-mode.el")
+                     (eval . (checkdoc-minor-mode))
+                     (indent-tabs-mode . nil)
+                     (fill-column . 80)
+                     (tab-width . 8)
+                     (sentence-end-double-space . t)
+                     (emacs-lisp-docstring-fill-column . 75)
+                     (elisp-lint-indent-specs . ((kotlin-mode--save-mark-and-excursion . 0))))))

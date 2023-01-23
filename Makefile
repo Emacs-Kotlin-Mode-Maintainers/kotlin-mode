@@ -48,9 +48,16 @@ clean:
 
 test:
 ## Tests the package.
-	$(CASK) exec $(EMACS) --batch -q \
-	  --eval "(add-to-list 'load-path \""$(shell readlink -f .)"\")" \
-	  --eval "(add-to-list 'load-path \""$(shell readlink -f .)"/test\")" \
-	  -f batch-byte-compile \
-	  *.el
-	cask exec ert-runner -L . -L test
+	CASK="${CASK}" EMACS="${EMACS}" scripts/run_test.sh
+
+test_in_docker:
+## Tests the package in Docker.
+	CASK="${CASK}" EMACS="${EMACS}" scripts/run_test_in_docker.sh
+
+lint:
+## Run linters.
+	CASK="${CASK}" EMACS="${EMACS}" scripts/run_linter.sh
+
+lint_in_docker:
+## Run linters in Docker.
+	CASK="${CASK}" EMACS="${EMACS}" scripts/run_linter_in_docker.sh

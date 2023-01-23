@@ -3,10 +3,6 @@
 ;; Copyright (C) 2019 taku0
 
 ;; Authors: taku0 (http://github.com/taku0)
-;; Keywords: languages
-;; Package-Requires: ((emacs "24.3"))
-;; Version: 0.0.1
-;; URL: https://github.com/Emacs-Kotlin-Mode-Maintainers/kotlin-mode
 
 ;; This file is not part of GNU Emacs.
 
