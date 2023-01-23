@@ -36,7 +36,7 @@
 
 ;;; Customizations
 
-(defcustom kotlin-mode--basic-offset 4
+(defcustom kotlin-tab-width 4
   "Amount of indentation for block contents.
 
 Example:
@@ -48,7 +48,7 @@ class Foo {
   :group 'kotlin
   :safe 'integerp)
 
-(defcustom kotlin-mode--parenthesized-expression-offset 4
+(defcustom kotlin-mode-parenthesized-expression-offset 4
   "Amount of indentation inside parentheses and square brackets.
 
 Example:
@@ -60,7 +60,7 @@ foo(
   :group 'kotlin
   :safe 'integerp)
 
-(defcustom kotlin-mode--multiline-statement-offset 4
+(defcustom kotlin-mode-multiline-statement-offset 4
   "Amount of indentation for continuations of expressions.
 
 Example:
@@ -71,7 +71,7 @@ val x = 1 +
   :group 'kotlin
   :safe 'integerp)
 
-(defcustom kotlin-mode--prepend-asterisk-to-comment-line t
+(defcustom kotlin-mode-prepend-asterisk-to-comment-line t
   "Automatically insert a asterisk to each comment line if non-nil.
 
 Example: if the enter key is pressed when the point is after A below,
@@ -90,7 +90,7 @@ an asterisk is inserted to the newline:
   :group 'kotlin
   :safe 'booleanp)
 
-(defcustom kotlin-mode--insert-space-after-asterisk-in-comment t
+(defcustom kotlin-mode-insert-space-after-asterisk-in-comment t
   "Automatically insert a space after asterisk in comment if non-nil.
 
 Example: if an asterisk is inserted before A below,
@@ -108,7 +108,7 @@ a space is inserted after asterisk:
   :group 'kotlin
   :safe 'booleanp)
 
-(defcustom kotlin-mode--auto-close-multiline-comment t
+(defcustom kotlin-mode-auto-close-multiline-comment t
   "If non-nil, `indent-new-comment-line' automatically close multiline comment.
 
 Example: when the enter key is pressed after unclosed comment below,
@@ -124,7 +124,7 @@ a closing delimiter is inserted automatically:
   :group 'kotlin
   :safe 'booleanp)
 
-(defcustom kotlin-mode--fix-comment-close t
+(defcustom kotlin-mode-fix-comment-close t
   "Fix \"* /\" in incomplete multiline comment to \"*/\" if non-nil.
 
 Example:
@@ -145,7 +145,7 @@ Example:
   :group 'kotlin
   :safe 'booleanp)
 
-(defcustom kotlin-mode--break-line-before-comment-close t
+(defcustom kotlin-mode-break-line-before-comment-close t
   "If non-nil, break line before the closing delimiter of multiline comments.
 
 Example: if line break is inserted before A below,
@@ -166,7 +166,7 @@ rather than like this:
   :group 'kotlin
   :safe 'booleanp)
 
-(defcustom kotlin-mode--indent-nonempty-line-in-multiline-string nil
+(defcustom kotlin-mode-indent-nonempty-line-in-multiline-string nil
   "If non-nil, indent nonempty line in multiline string.
 
 `indent-according-to-mode' is no-op otherwise."
@@ -174,7 +174,7 @@ rather than like this:
   :group 'kotlin
   :safe 'booleanp)
 
-(defcustom kotlin-mode--highlight-anchor nil
+(defcustom kotlin-mode-highlight-anchor nil
   "Highlight anchor point for indentation if non-nil.
 
 Intended for debugging."
@@ -216,7 +216,7 @@ the start of the previous line or the start of the class declaration.")
            :documentation "the offset from the anchor point.  For
 example, when indenting the first line of a class body, its anchor
 point is the start of the class declaration and its offset is
-`kotlin-mode--basic-offset'."))
+`kotlin-tab-width'."))
   "Indentation.")
 
 ;;; Indentation logic
@@ -236,8 +236,8 @@ point is the start of the class declaration and its offset is
         (indent-line-to indentation-column)
       ;; Keep current relative position from leftmost non-comment char.
       (save-excursion (indent-line-to indentation-column)))
-    (when kotlin-mode--highlight-anchor
-      (kotlin-mode--highlight-anchor indentation))))
+    (when kotlin-mode-highlight-anchor
+      (kotlin-mode-highlight-anchor indentation))))
 
 (defun kotlin-mode--calculate-indent ()
   "Return the indentation of the current line."
@@ -281,7 +281,7 @@ point is the start of the class declaration and its offset is
       (when (and
              (looking-at
               (rx (seq (zero-or-more "*") (one-or-more (not (any "\n*"))))))
-             (not (and kotlin-mode--prepend-asterisk-to-comment-line
+             (not (and kotlin-mode-prepend-asterisk-to-comment-line
                        starts-with-asterisk)))
         (skip-chars-forward "*")
         (skip-syntax-forward " "))
@@ -364,7 +364,7 @@ point is the start of the class declaration and its offset is
           (goto-char string-beginning-position)
           (let ((indentation
                  (kotlin-mode--calculate-indent-of-expression
-                  kotlin-mode--multiline-statement-offset)))
+                  kotlin-mode-multiline-statement-offset)))
             (if (= (kotlin-mode--indentation-position indentation)
                    string-beginning-position)
                 (make-instance 'kotlin-mode--indentation
@@ -373,7 +373,7 @@ point is the start of the class declaration and its offset is
               indentation)))
       ;; Other than the closing delimiter.
       (if (and (not (eolp))
-               (not kotlin-mode--indent-nonempty-line-in-multiline-string))
+               (not kotlin-mode-indent-nonempty-line-in-multiline-string))
           ;; The user prefers to keep indentations inside multiline string.
           (make-instance 'kotlin-mode--indentation :position (point) :offset 0)
         ;; The user prefers to indent lines inside multiline string.
@@ -389,7 +389,7 @@ point is the start of the class declaration and its offset is
           ;; indentation.
           (goto-char string-beginning-position)
           (kotlin-mode--calculate-indent-of-expression
-           kotlin-mode--multiline-statement-offset))
+           kotlin-mode-multiline-statement-offset))
 
          ;; The point was on the 3rd or following lines of the string.
          ;; Align with a non-empty preceding line.
@@ -511,7 +511,7 @@ point is the start of the class declaration and its offset is
      ((and next-is-on-current-line (equal next-text "where"))
       (kotlin-mode--find-parent-and-align-with-next
        kotlin-mode--statement-parent-tokens
-       kotlin-mode--multiline-statement-offset))
+       kotlin-mode-multiline-statement-offset))
 
      ;; Before "catch" or "finally" on the current line
      ((and next-is-on-current-line (member next-text '("catch" "finally")))
@@ -532,7 +532,7 @@ point is the start of the class declaration and its offset is
      ((and next-is-on-current-line (equal next-text "="))
       (kotlin-mode--find-parent-and-align-with-next
        (remove '\, (remove "where" kotlin-mode--expression-parent-tokens))
-       kotlin-mode--multiline-statement-offset))
+       kotlin-mode-multiline-statement-offset))
 
      ;; Before "," on the current line
      ((and next-is-on-current-line (eq next-type '\,))
@@ -547,20 +547,20 @@ point is the start of the class declaration and its offset is
      ((equal previous-text "catch")
       (kotlin-mode--find-parent-and-align-with-next
        kotlin-mode--statement-parent-tokens
-       kotlin-mode--multiline-statement-offset))
+       kotlin-mode-multiline-statement-offset))
 
      ;; After {
      ((eq previous-type '{)
       (goto-char (kotlin-mode--token-start previous-token))
       (kotlin-mode--calculate-indent-after-open-curly-brace
-       kotlin-mode--basic-offset))
+       kotlin-tab-width))
 
      ;; After ( or [
      ((memq previous-type '(\( \[))
       (goto-char (kotlin-mode--token-start previous-token))
       (kotlin-mode--calculate-indent-of-expression
-       kotlin-mode--parenthesized-expression-offset
-       kotlin-mode--parenthesized-expression-offset))
+       kotlin-mode-parenthesized-expression-offset
+       kotlin-mode-parenthesized-expression-offset))
 
      ;; After open angle bracket for generics (<)
      ((and (equal previous-text "<")
@@ -570,14 +570,14 @@ point is the start of the class declaration and its offset is
                  '<>)))
       (goto-char (kotlin-mode--token-start previous-token))
       (kotlin-mode--calculate-indent-of-expression
-       kotlin-mode--parenthesized-expression-offset
-       kotlin-mode--parenthesized-expression-offset))
+       kotlin-mode-parenthesized-expression-offset
+       kotlin-mode-parenthesized-expression-offset))
 
      ;; After beginning of a template expression
      ((eq previous-type 'string-chunk-before-template-expression)
       (goto-char (kotlin-mode--token-start previous-token))
       (kotlin-mode--calculate-indent-after-beginning-of-template-expression
-       kotlin-mode--parenthesized-expression-offset))
+       kotlin-mode-parenthesized-expression-offset))
 
      ;; After ; or implicit-\;
      ((memq previous-type '(\; implicit-\;))
@@ -589,7 +589,7 @@ point is the start of the class declaration and its offset is
       (goto-char (cdr (kotlin-mode--find-containing-brackets
                        (kotlin-mode--token-start previous-token))))
       (kotlin-mode--calculate-indent-after-open-curly-brace
-       kotlin-mode--basic-offset))
+       kotlin-tab-width))
 
      ;; Before "->" of lambda parameters on the current line
      ((and next-is-on-current-line
@@ -597,7 +597,7 @@ point is the start of the class declaration and its offset is
       (if (eq (kotlin-mode--token-type (kotlin-mode--backward-token-or-list))
               '{)
           (kotlin-mode--calculate-indent-after-open-curly-brace
-           kotlin-mode--basic-offset)
+           kotlin-tab-width)
         (goto-char (cdr (kotlin-mode--find-containing-brackets
                          (kotlin-mode--token-start next-token))))
         (kotlin-mode--align-with-next-token (kotlin-mode--forward-token))))
@@ -611,21 +611,21 @@ point is the start of the class declaration and its offset is
           (memq e '(when-expression-arrow
                     bare-else \(\)-before-control-structure-body)))
         kotlin-mode--statement-parent-tokens)
-       kotlin-mode--basic-offset))
+       kotlin-tab-width))
 
      ;; Before "->" of when expression on the current line
      ((and next-is-on-current-line (eq next-type 'when-expression-arrow))
       (if (equal (kotlin-mode--token-text previous-token) "else")
           (kotlin-mode--align-with-token
            previous-token
-           kotlin-mode--basic-offset)
+           kotlin-tab-width)
         (kotlin-mode--find-parent-and-align-with-next
          (cl-remove-if
           (lambda (e)
             (memq e '(when-expression-arrow
                       bare-else \(\)-before-control-structure-body)))
           kotlin-mode--statement-parent-tokens)
-         kotlin-mode--basic-offset)))
+         kotlin-tab-width)))
 
      ;; After "where"
      ;;
@@ -640,38 +640,38 @@ point is the start of the class declaration and its offset is
       (if (kotlin-mode--bol-other-than-comments-p)
           (kotlin-mode--align-with-token
            previous-token
-           kotlin-mode--multiline-statement-offset)
+           kotlin-mode-multiline-statement-offset)
         (kotlin-mode--find-parent-and-align-with-next
          kotlin-mode--statement-parent-tokens
-         kotlin-mode--multiline-statement-offset)))
+         kotlin-mode-multiline-statement-offset)))
 
      ;; After if, when, for, or while
      ((member previous-text '("if" "when" "for" "while"))
       (kotlin-mode--find-parent-and-align-with-next
        kotlin-mode--statement-parent-tokens
-       kotlin-mode--multiline-statement-offset))
+       kotlin-mode-multiline-statement-offset))
 
      ;; After do
      ((equal previous-text "do")
       (kotlin-mode--align-with-token
        previous-token
-       (if (equal next-text "while") 0 kotlin-mode--basic-offset)))
+       (if (equal next-text "while") 0 kotlin-tab-width)))
 
      ;; After else
      ((equal previous-text "else")
       (kotlin-mode--align-with-token
        previous-token
-       kotlin-mode--basic-offset))
+       kotlin-tab-width))
 
      ;; After "if ()", "while ()", or "for ()"
      ((eq previous-type '\)-before-control-structure-body)
       (kotlin-mode--backward-token-or-list)
       (kotlin-mode--find-parent-and-align-with-next
        kotlin-mode--statement-parent-tokens
-       kotlin-mode--basic-offset
+       kotlin-tab-width
        '()
        '("else")
-       kotlin-mode--basic-offset))
+       kotlin-tab-width))
 
      ;; Before ; on the current line
      ((and next-is-on-current-line (eq next-type '\;))
@@ -730,7 +730,7 @@ point is the start of the class declaration and its offset is
               ;; Indent like a expression
               (goto-char (kotlin-mode--token-start previous-token))
               (kotlin-mode--calculate-indent-of-expression
-               kotlin-mode--multiline-statement-offset))
+               kotlin-mode-multiline-statement-offset))
           ;; After "in" at the beginning of the line.
           ;;
           ;; Example:
@@ -746,7 +746,7 @@ point is the start of the class declaration and its offset is
           (goto-char (kotlin-mode--token-start previous-token))
           (kotlin-mode--align-with-next-token
            (kotlin-mode--backward-token)
-           kotlin-mode--multiline-statement-offset))))
+           kotlin-mode-multiline-statement-offset))))
 
      ;; Before "while" on the current line
      ((and next-is-on-current-line (equal next-text "while"))
@@ -815,7 +815,7 @@ point is the start of the class declaration and its offset is
              0
            ;; 2nd line of the annotation.
            ;; Align with the start of the annotation with offset.
-           kotlin-mode--multiline-statement-offset))))
+           kotlin-mode-multiline-statement-offset))))
 
      ;; After annotations or labels
      ((memq previous-type '(annotation label))
@@ -842,7 +842,7 @@ point is the start of the class declaration and its offset is
       (goto-char (kotlin-mode--token-end previous-token))
       (kotlin-mode--backward-token-or-list)
       (kotlin-mode--calculate-indent-of-expression
-       kotlin-mode--multiline-statement-offset)))))
+       kotlin-mode-multiline-statement-offset)))))
 
 (defun kotlin-mode--find-parent-and-align-with-next
     (parents
@@ -1744,8 +1744,8 @@ See `indent-new-comment-line' for SOFT."
 The point is assumed inside multiline comment and just after newline.
 
 The closing delimiter is also inserted and/or formatted depending on custom
-variables `kotlin-mode--auto-close-multiline-comment' and
-`kotlin-mode--break-line-before-comment-close'.
+variables `kotlin-mode-auto-close-multiline-comment' and
+`kotlin-mode-break-line-before-comment-close'.
 
 CHUNK is the comment chunk.
 
@@ -1794,7 +1794,7 @@ See `indent-new-comment-line' for SOFT."
             (delete-char 1))))
 
       ;; If the point is just before the closing delimiter, break the line.
-      (when (and kotlin-mode--break-line-before-comment-close
+      (when (and kotlin-mode-break-line-before-comment-close
                  (= (point)
                     (save-excursion
                       (goto-char comment-beginning-position)
@@ -1812,7 +1812,7 @@ See `indent-new-comment-line' for SOFT."
       (indent-according-to-mode)
 
       ;; Insert or replace a space to an asterisk.
-      (when kotlin-mode--prepend-asterisk-to-comment-line
+      (when kotlin-mode-prepend-asterisk-to-comment-line
         (let ((columns-from-end (- (line-end-position) (point))))
           (move-to-column
            (save-excursion
@@ -1823,7 +1823,7 @@ See `indent-new-comment-line' for SOFT."
           (when (eq (char-after) ?\s)
             (delete-char 1))
           (when (and
-                 kotlin-mode--insert-space-after-asterisk-in-comment
+                 kotlin-mode-insert-space-after-asterisk-in-comment
                  (not (eq (char-after) ?\s)))
             (insert-and-inherit " "))
           (goto-char (- (line-end-position) columns-from-end)))))
@@ -1833,7 +1833,7 @@ See `indent-new-comment-line' for SOFT."
      ;; Use the prefix of the previous line.
 
      ((and
-       kotlin-mode--prepend-asterisk-to-comment-line
+       kotlin-mode-prepend-asterisk-to-comment-line
        (save-excursion
          (forward-line -1)
          (looking-at "\\s *\\(\\*+\\s *\\)")))
@@ -1846,7 +1846,7 @@ See `indent-new-comment-line' for SOFT."
       (indent-according-to-mode)))
 
     ;; Close incomplete multiline comment.
-    (when (and kotlin-mode--auto-close-multiline-comment
+    (when (and kotlin-mode-auto-close-multiline-comment
                (kotlin-mode--incomplete-comment-p chunk))
       (save-excursion
         (end-of-line)
@@ -1856,7 +1856,7 @@ See `indent-new-comment-line' for SOFT."
         (indent-according-to-mode)))
 
     ;; Make sure the closing delimiter is on its own line.
-    (when kotlin-mode--break-line-before-comment-close
+    (when kotlin-mode-break-line-before-comment-close
       (save-excursion
         (goto-char comment-beginning-position)
         (when (forward-comment 1)
@@ -1873,18 +1873,18 @@ See `indent-new-comment-line' for SOFT."
    ;; Indent electrically and insert a space when "*" is inserted at the
    ;; beginning of a line inside a multiline comment.
    ((and
-     kotlin-mode--prepend-asterisk-to-comment-line
+     kotlin-mode-prepend-asterisk-to-comment-line
      (eq last-command-event ?*)
      (kotlin-mode--chunk-comment-p (kotlin-mode--chunk-after))
      (save-excursion (backward-char) (skip-syntax-backward " ") (bolp)))
-    (when kotlin-mode--insert-space-after-asterisk-in-comment
+    (when kotlin-mode-insert-space-after-asterisk-in-comment
       (insert-and-inherit " "))
     (when electric-indent-mode
       (indent-according-to-mode)))
 
    ;; Fixe "* /" at the end of a multiline comment to "*/".
    ((and
-     kotlin-mode--fix-comment-close
+     kotlin-mode-fix-comment-close
      (eq last-command-event ?/)
      (let ((chunk (kotlin-mode--chunk-after))
            (pos (point)))
@@ -1927,7 +1927,7 @@ See `indent-new-comment-line' for SOFT."
       (backward-char)
       (delete-horizontal-space)))))
 
-(defun kotlin-mode--highlight-anchor (indentation)
+(defun kotlin-mode-highlight-anchor (indentation)
   "Highlight the anchor point of the INDENTATION."
   (move-overlay
    kotlin-mode--anchor-overlay

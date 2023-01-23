@@ -40,12 +40,6 @@
   "A Kotlin major mode."
   :group 'languages)
 
-(defcustom kotlin-tab-width 4
-  "The tab width to use for indentation."
-  :type 'integer
-  :group 'kotlin-mode
-  :safe 'integerp)
-
 (defcustom kotlin-command "kotlinc"
   "The Kotlin command used for evaluating code."
   :type 'string
