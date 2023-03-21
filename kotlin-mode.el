@@ -35,6 +35,7 @@
 
 (require 'kotlin-mode-lexer)
 (require 'kotlin-mode-indent)
+(require 'kotlin-mode-fill)
 
 (defgroup kotlin nil
   "A Kotlin major mode."
@@ -358,18 +359,17 @@ and return non-nil.  Return nil otherwise."
                         ;; Multi-line comment
                         (seq "/" (one-or-more "*"))
                         ;; Middle of multi-line-comment
-                        (seq (one-or-more "*") " "))
+                        (seq (one-or-more "*") (zero-or-one " ")))
                        (zero-or-more (syntax whitespace)))))
-  (setq-local adaptive-fill-regexp
-              (rx (seq (zero-or-more (syntax whitespace))
-                       (or
-                        ;; Single-line comment
-                        (seq "/" (one-or-more "/"))
-                        ;; Middle of multi-line-comment
-                        (seq (one-or-more "*") " "))
-                       (zero-or-more (syntax whitespace)))))
-  (setq-local fill-indent-according-to-mode t)
+  (setq-local adaptive-fill-first-line-regexp ".*")
+  (setq-local adaptive-fill-function #'kotlin-mode--adaptive-fill)
+  (setq-local fill-indent-according-to-mode nil)
   (setq-local comment-multi-line t)
+  (setq-local fill-paragraph-function #'kotlin-mode--fill-paragraph)
+  (setq-local fill-forward-paragraph-function
+              #'kotlin-mode--fill-forward-paragraph)
+  (setq-local normal-auto-fill-function #'kotlin-mode--do-auto-fill)
+  (kotlin-mode--install-fill-region-as-paragraph-advice)
 
   (setq-local indent-line-function 'kotlin-mode--indent-line)
 

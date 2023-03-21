@@ -15,7 +15,7 @@ do
         --workdir="/src" \
         --env=ELDEV_DIR=/src/.eldev \
         --env=HOME=/tmp \
-        silex/emacs:${version} \
+        silex/emacs:${version}-ci \
         bash -c "/src/scripts/run_test.sh" \
         || exit 1
 done

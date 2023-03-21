@@ -1,5 +1,10 @@
 (require 'kotlin-mode)
 
+(defvar kotlin-mode--test-directory
+  (file-name-directory
+   (if (fboundp 'macroexp-file-name) (macroexp-file-name)
+     (or load-file-name buffer-file-name))))
+
 (ert-deftest kotlin-mode--top-level-indent-test ()
   (with-temp-buffer
     (let ((text "package com.gregghz.emacs
@@ -184,25 +189,26 @@ println(arg)
   "If non-nil, do not stop at error in `kotlin-mode--sample-test'.")
 
 (ert-deftest kotlin-mode--sample-test ()
-  (dolist (filename '("test/sample.kt" "test/pathological.kt"))
-    (with-temp-buffer
-      (insert-file-contents filename)
-      (goto-char (point-min))
-      (kotlin-mode)
-      (setq-local indent-tabs-mode nil)
-      (setq-local tab-width 4)
-      (setq-local kotlin-tab-width 4)
+  (let ((default-directory (file-name-directory kotlin-mode--test-directory)))
+    (dolist (filename '("sample.kt" "pathological.kt"))
+      (with-temp-buffer
+        (insert-file-contents filename)
+        (goto-char (point-min))
+        (kotlin-mode)
+        (setq-local indent-tabs-mode nil)
+        (setq-local tab-width 4)
+        (setq-local kotlin-tab-width 4)
 
-      (while (not (eobp))
-        (kotlin-mode--test-current-line filename nil)
+        (while (not (eobp))
+          (kotlin-mode--test-current-line filename nil)
 
-        ;; Indent without following lines
-        (narrow-to-region (point-min) (line-end-position))
-        (kotlin-mode--test-current-line filename t)
-        (widen)
+          ;; Indent without following lines
+          (narrow-to-region (point-min) (line-end-position))
+          (kotlin-mode--test-current-line filename t)
+          (widen)
 
-        ;; Go to the next non-empty line
-        (next-non-empty-line)))))
+          ;; Go to the next non-empty line
+          (next-non-empty-line))))))
 
 (defun kotlin-mode--test-current-line (filename truncated)
   (back-to-indentation)
@@ -271,3 +277,5 @@ println(arg)
 
     ;; Restore to original indentation for KNOWN_BUG line.
     (indent-line-to original-indent)))
+
+(provide 'kotlin-mode-test)
