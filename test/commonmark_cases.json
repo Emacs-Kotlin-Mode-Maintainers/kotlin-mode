@@ -1,0 +1,2620 @@
+{
+  "copyright": [
+    "Derived from spec.txt of commonmark.js.\n",
+    "https://github.com/commonmark/commonmark.js\n",
+    "\n",
+    "---\n",
+    "title: CommonMark Spec\n",
+    "author: John MacFarlane\n",
+    "version: '0.30'\n",
+    "date: '2021-06-19'\n",
+    "license: '[CC-BY-SA 4.0](http://creativecommons.org/licenses/by-sa/4.0/)'\n",
+    "..."
+  ],
+  "cases": [
+    {
+      "source": "\tfoo\tbaz\t\tbim\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "  \tfoo\tbaz\t\tbim\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "    a\ta\n    ὐ\ta\n",
+      "expected": "document 1-2\n  code_block 1-2"
+    },
+    {
+      "source": "  - foo\n\n\tbar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      paragraph 3-3"
+    },
+    {
+      "source": "- foo\n\n\t\tbar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      code_block 3-3"
+    },
+    {
+      "source": ">\t\tfoo\n",
+      "expected": "document 1-1\n  block_quote 1-1\n    code_block 1-1"
+    },
+    {
+      "source": "-\t\tfoo\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      code_block 1-1"
+    },
+    {
+      "source": "    foo\n\tbar\n",
+      "expected": "document 1-2\n  code_block 1-2"
+    },
+    {
+      "source": " - foo\n   - bar\n\t - baz\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      list 2-3\n        item 2-3\n          paragraph 2-2\n          list 3-3\n            item 3-3\n              paragraph 3-3"
+    },
+    {
+      "source": "#\tFoo\n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "*\t*\t*\t\n",
+      "expected": "document 1-1\n  thematic_break 1-1"
+    },
+    {
+      "source": "\\!\\\"\\#\\$\\%\\&\\'\\(\\)\\*\\+\\,\\-\\.\\/\\:\\;\\<\\=\\>\\?\\@\\[\\\\\\]\\^\\_\\`\\{\\|\\}\\~\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "\\\t\\A\\a\\ \\3\\φ\\«\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "\\*not emphasized*\n\\<br/> not a tag\n\\[not a link](/foo)\n\\`not code`\n1\\. not a list\n\\* not a list\n\\# not a heading\n\\[foo]: /url \"not a reference\"\n\\&ouml; not a character entity\n",
+      "expected": "document 1-9\n  paragraph 1-9"
+    },
+    {
+      "source": "\\\\*emphasis*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo\\\nbar\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "`` \\[\\` ``\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "    \\[\\]\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "~~~\n\\[\\]\n~~~\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "<http://example.com?find=\\*>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a href=\"/bar\\/)\">\n",
+      "expected": "document 1-1\n  html_block 1-1"
+    },
+    {
+      "source": "[foo](/bar\\* \"ti\\*tle\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo]\n\n[foo]: /bar\\* \"ti\\*tle\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "``` foo\\+bar\nfoo\n```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "&nbsp; &amp; &copy; &AElig; &Dcaron;\n&frac34; &HilbertSpace; &DifferentialD;\n&ClockwiseContourIntegral; &ngE;\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "&#35; &#1234; &#992; &#0;\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "&#X22; &#XD06; &#xcab;\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "&nbsp &x; &#; &#x;\n&#87654321;\n&#abcdef0;\n&ThisIsNotDefined; &hi?;\n",
+      "expected": "document 1-4\n  paragraph 1-4"
+    },
+    {
+      "source": "&copy\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "&MadeUpEntity;\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a href=\"&ouml;&ouml;.html\">\n",
+      "expected": "document 1-1\n  html_block 1-1"
+    },
+    {
+      "source": "[foo](/f&ouml;&ouml; \"f&ouml;&ouml;\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo]\n\n[foo]: /f&ouml;&ouml; \"f&ouml;&ouml;\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "``` f&ouml;&ouml;\nfoo\n```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "`f&ouml;&ouml;`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "    f&ouml;f&ouml;\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "&#42;foo&#42;\n*foo*\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "&#42; foo\n\n* foo\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  list 3-3\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "foo&#10;&#10;bar\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "&#9;foo\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[a](url &quot;tit&quot;)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "- `one\n- two`\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2"
+    },
+    {
+      "source": "***\n---\n___\n",
+      "expected": "document 1-3\n  thematic_break 1-1\n  thematic_break 2-2\n  thematic_break 3-3"
+    },
+    {
+      "source": "+++\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "===\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "--\n**\n__\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": " ***\n  ***\n   ***\n",
+      "expected": "document 1-3\n  thematic_break 1-1\n  thematic_break 2-2\n  thematic_break 3-3"
+    },
+    {
+      "source": "    ***\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "Foo\n    ***\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "_____________________________________\n",
+      "expected": "document 1-1\n  thematic_break 1-1"
+    },
+    {
+      "source": " - - -\n",
+      "expected": "document 1-1\n  thematic_break 1-1"
+    },
+    {
+      "source": " **  * ** * ** * **\n",
+      "expected": "document 1-1\n  thematic_break 1-1"
+    },
+    {
+      "source": "-     -      -      -\n",
+      "expected": "document 1-1\n  thematic_break 1-1"
+    },
+    {
+      "source": "- - - -    \n",
+      "expected": "document 1-1\n  thematic_break 1-1"
+    },
+    {
+      "source": "_ _ _ _ a\n\na------\n\n---a---\n",
+      "expected": "document 1-5\n  paragraph 1-1\n  paragraph 3-3\n  paragraph 5-5"
+    },
+    {
+      "source": " *-*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "- foo\n***\n- bar\n",
+      "expected": "document 1-3\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  thematic_break 2-2\n  list 3-3\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "Foo\n***\nbar\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  thematic_break 2-2\n  paragraph 3-3"
+    },
+    {
+      "source": "Foo\n---\nbar\n",
+      "expected": "document 1-3\n  heading 1-2\n  paragraph 3-3"
+    },
+    {
+      "source": "* Foo\n* * *\n* Bar\n",
+      "expected": "document 1-3\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  thematic_break 2-2\n  list 3-3\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "- Foo\n- * * *\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      thematic_break 2-2"
+    },
+    {
+      "source": "# foo\n## foo\n### foo\n#### foo\n##### foo\n###### foo\n",
+      "expected": "document 1-6\n  heading 1-1\n  heading 2-2\n  heading 3-3\n  heading 4-4\n  heading 5-5\n  heading 6-6"
+    },
+    {
+      "source": "####### foo\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "#5 bolt\n\n#hashtag\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "\\## foo\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "# foo *bar* \\*baz\\*\n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "#                  foo                     \n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": " ### foo\n  ## foo\n   # foo\n",
+      "expected": "document 1-3\n  heading 1-1\n  heading 2-2\n  heading 3-3"
+    },
+    {
+      "source": "    # foo\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "foo\n    # bar\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "## foo ##\n  ###   bar    ###\n",
+      "expected": "document 1-2\n  heading 1-1\n  heading 2-2"
+    },
+    {
+      "source": "# foo ##################################\n##### foo ##\n",
+      "expected": "document 1-2\n  heading 1-1\n  heading 2-2"
+    },
+    {
+      "source": "### foo ###     \n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "### foo ### b\n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "# foo#\n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "### foo \\###\n## foo #\\##\n# foo \\#\n",
+      "expected": "document 1-3\n  heading 1-1\n  heading 2-2\n  heading 3-3"
+    },
+    {
+      "source": "****\n## foo\n****\n",
+      "expected": "document 1-3\n  thematic_break 1-1\n  heading 2-2\n  thematic_break 3-3"
+    },
+    {
+      "source": "Foo bar\n# baz\nBar foo\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  heading 2-2\n  paragraph 3-3"
+    },
+    {
+      "source": "## \n#\n### ###\n",
+      "expected": "document 1-3\n  heading 1-1\n  heading 2-2\n  heading 3-3"
+    },
+    {
+      "source": "Foo *bar*\n=========\n\nFoo *bar*\n---------\n",
+      "expected": "document 1-5\n  heading 1-2\n  heading 4-5"
+    },
+    {
+      "source": "Foo *bar\nbaz*\n====\n",
+      "expected": "document 1-3\n  heading 1-3"
+    },
+    {
+      "source": "  Foo *bar\nbaz*\t\n====\n",
+      "expected": "document 1-3\n  heading 1-3"
+    },
+    {
+      "source": "Foo\n-------------------------\n\nFoo\n=\n",
+      "expected": "document 1-5\n  heading 1-2\n  heading 4-5"
+    },
+    {
+      "source": "   Foo\n---\n\n  Foo\n-----\n\n  Foo\n  ===\n",
+      "expected": "document 1-8\n  heading 1-2\n  heading 4-5\n  heading 7-8"
+    },
+    {
+      "source": "    Foo\n    ---\n\n    Foo\n---\n",
+      "expected": "document 1-5\n  code_block 1-4\n  thematic_break 5-5"
+    },
+    {
+      "source": "Foo\n   ----      \n",
+      "expected": "document 1-2\n  heading 1-2"
+    },
+    {
+      "source": "Foo\n    ---\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "Foo\n= =\n\nFoo\n--- -\n",
+      "expected": "document 1-5\n  paragraph 1-2\n  paragraph 4-4\n  thematic_break 5-5"
+    },
+    {
+      "source": "Foo  \n-----\n",
+      "expected": "document 1-2\n  heading 1-2"
+    },
+    {
+      "source": "Foo\\\n----\n",
+      "expected": "document 1-2\n  heading 1-2"
+    },
+    {
+      "source": "`Foo\n----\n`\n\n<a title=\"a lot\n---\nof dashes\"/>\n",
+      "expected": "document 1-7\n  heading 1-2\n  paragraph 3-3\n  heading 5-6\n  paragraph 7-7"
+    },
+    {
+      "source": "> Foo\n---\n",
+      "expected": "document 1-2\n  block_quote 1-1\n    paragraph 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "> foo\nbar\n===\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    paragraph 1-3"
+    },
+    {
+      "source": "- Foo\n---\n",
+      "expected": "document 1-2\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "Foo\nBar\n---\n",
+      "expected": "document 1-3\n  heading 1-3"
+    },
+    {
+      "source": "---\nFoo\n---\nBar\n---\nBaz\n",
+      "expected": "document 1-6\n  thematic_break 1-1\n  heading 2-3\n  heading 4-5\n  paragraph 6-6"
+    },
+    {
+      "source": "\n====\n",
+      "expected": "document 1-2\n  paragraph 2-2"
+    },
+    {
+      "source": "---\n---\n",
+      "expected": "document 1-2\n  thematic_break 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "- foo\n-----\n",
+      "expected": "document 1-2\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "    foo\n---\n",
+      "expected": "document 1-2\n  code_block 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "> foo\n-----\n",
+      "expected": "document 1-2\n  block_quote 1-1\n    paragraph 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "\\> foo\n------\n",
+      "expected": "document 1-2\n  heading 1-2"
+    },
+    {
+      "source": "Foo\n\nbar\n---\nbaz\n",
+      "expected": "document 1-5\n  paragraph 1-1\n  heading 3-4\n  paragraph 5-5"
+    },
+    {
+      "source": "Foo\nbar\n\n---\n\nbaz\n",
+      "expected": "document 1-6\n  paragraph 1-2\n  thematic_break 4-4\n  paragraph 6-6"
+    },
+    {
+      "source": "Foo\nbar\n* * *\nbaz\n",
+      "expected": "document 1-4\n  paragraph 1-2\n  thematic_break 3-3\n  paragraph 4-4"
+    },
+    {
+      "source": "Foo\nbar\n\\---\nbaz\n",
+      "expected": "document 1-4\n  paragraph 1-4"
+    },
+    {
+      "source": "    a simple\n      indented code block\n",
+      "expected": "document 1-2\n  code_block 1-2"
+    },
+    {
+      "source": "  - foo\n\n    bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      paragraph 3-3"
+    },
+    {
+      "source": "1.  foo\n\n    - bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      list 3-3\n        item 3-3\n          paragraph 3-3"
+    },
+    {
+      "source": "    <a/>\n    *hi*\n\n    - one\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "    chunk1\n\n    chunk2\n  \n \n \n    chunk3\n",
+      "expected": "document 1-7\n  code_block 1-7"
+    },
+    {
+      "source": "    chunk1\n      \n      chunk2\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "Foo\n    bar\n\n",
+      "expected": "document 1-3\n  paragraph 1-2"
+    },
+    {
+      "source": "    foo\nbar\n",
+      "expected": "document 1-2\n  code_block 1-1\n  paragraph 2-2"
+    },
+    {
+      "source": "# Heading\n    foo\nHeading\n------\n    foo\n----\n",
+      "expected": "document 1-6\n  heading 1-1\n  code_block 2-2\n  heading 3-4\n  code_block 5-5\n  thematic_break 6-6"
+    },
+    {
+      "source": "        foo\n    bar\n",
+      "expected": "document 1-2\n  code_block 1-2"
+    },
+    {
+      "source": "\n    \n    foo\n    \n\n",
+      "expected": "document 1-5\n  code_block 3-3"
+    },
+    {
+      "source": "    foo  \n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "```\n<\n >\n```\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "~~~\n<\n >\n~~~\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "``\nfoo\n``\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "```\naaa\n~~~\n```\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "~~~\naaa\n```\n~~~\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "````\naaa\n```\n``````\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "~~~~\naaa\n~~~\n~~~~\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "```\n",
+      "expected": "document 1-1\n  code_block 1-1"
+    },
+    {
+      "source": "`````\n\n```\naaa\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "> ```\n> aaa\n\nbbb\n",
+      "expected": "document 1-4\n  block_quote 1-2\n    code_block 1-2\n  paragraph 4-4"
+    },
+    {
+      "source": "```\n\n  \n```\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "```\n```\n",
+      "expected": "document 1-2\n  code_block 1-2"
+    },
+    {
+      "source": " ```\n aaa\naaa\n```\n",
+      "expected": "document 1-4\n  code_block 1-4"
+    },
+    {
+      "source": "  ```\naaa\n  aaa\naaa\n  ```\n",
+      "expected": "document 1-5\n  code_block 1-5"
+    },
+    {
+      "source": "   ```\n   aaa\n    aaa\n  aaa\n   ```\n",
+      "expected": "document 1-5\n  code_block 1-5"
+    },
+    {
+      "source": "    ```\n    aaa\n    ```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "```\naaa\n  ```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "   ```\naaa\n  ```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "```\naaa\n    ```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "``` ```\naaa\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "~~~~~~\naaa\n~~~ ~~\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "foo\n```\nbar\n```\nbaz\n",
+      "expected": "document 1-5\n  paragraph 1-1\n  code_block 2-4\n  paragraph 5-5"
+    },
+    {
+      "source": "foo\n---\n~~~\nbar\n~~~\n# baz\n",
+      "expected": "document 1-6\n  heading 1-2\n  code_block 3-5\n  heading 6-6"
+    },
+    {
+      "source": "```ruby\ndef foo(x)\n  return 3\nend\n```\n",
+      "expected": "document 1-5\n  code_block 1-5"
+    },
+    {
+      "source": "~~~~    ruby startline=3 $%@#$\ndef foo(x)\n  return 3\nend\n~~~~~~~\n",
+      "expected": "document 1-5\n  code_block 1-5"
+    },
+    {
+      "source": "````;\n````\n",
+      "expected": "document 1-2\n  code_block 1-2"
+    },
+    {
+      "source": "``` aa ```\nfoo\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "~~~ aa ``` ~~~\nfoo\n~~~\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "```\n``` aaa\n```\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "<table><tr><td>\n<pre>\n**Hello**,\n\n_world_.\n</pre>\n</td></tr></table>\n",
+      "expected": "document 1-7\n  html_block 1-3\n  paragraph 5-6\n  html_block 7-7"
+    },
+    {
+      "source": "<table>\n  <tr>\n    <td>\n           hi\n    </td>\n  </tr>\n</table>\n\nokay.\n",
+      "expected": "document 1-9\n  html_block 1-7\n  paragraph 9-9"
+    },
+    {
+      "source": " <div>\n  *hello*\n         <foo><a>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "</div>\n*foo*\n",
+      "expected": "document 1-2\n  html_block 1-2"
+    },
+    {
+      "source": "<DIV CLASS=\"foo\">\n\n*Markdown*\n\n</DIV>\n",
+      "expected": "document 1-5\n  html_block 1-1\n  paragraph 3-3\n  html_block 5-5"
+    },
+    {
+      "source": "<div id=\"foo\"\n  class=\"bar\">\n</div>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<div id=\"foo\" class=\"bar\n  baz\">\n</div>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<div>\n*foo*\n\n*bar*\n",
+      "expected": "document 1-4\n  html_block 1-2\n  paragraph 4-4"
+    },
+    {
+      "source": "<div id=\"foo\"\n*hi*\n",
+      "expected": "document 1-2\n  html_block 1-2"
+    },
+    {
+      "source": "<div class\nfoo\n",
+      "expected": "document 1-2\n  html_block 1-2"
+    },
+    {
+      "source": "<div *???-&&&-<---\n*foo*\n",
+      "expected": "document 1-2\n  html_block 1-2"
+    },
+    {
+      "source": "<div><a href=\"bar\">*foo*</a></div>\n",
+      "expected": "document 1-1\n  html_block 1-1"
+    },
+    {
+      "source": "<table><tr><td>\nfoo\n</td></tr></table>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<div></div>\n``` c\nint x = 33;\n```\n",
+      "expected": "document 1-4\n  html_block 1-4"
+    },
+    {
+      "source": "<a href=\"foo\">\n*bar*\n</a>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<Warning>\n*bar*\n</Warning>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<i class=\"foo\">\n*bar*\n</i>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "</ins>\n*bar*\n",
+      "expected": "document 1-2\n  html_block 1-2"
+    },
+    {
+      "source": "<del>\n*foo*\n</del>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<del>\n\n*foo*\n\n</del>\n",
+      "expected": "document 1-5\n  html_block 1-1\n  paragraph 3-3\n  html_block 5-5"
+    },
+    {
+      "source": "<del>*foo*</del>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<pre language=\"haskell\"><code>\nimport Text.HTML.TagSoup\n\nmain :: IO ()\nmain = print $ parseTags tags\n</code></pre>\nokay\n",
+      "expected": "document 1-7\n  html_block 1-6\n  paragraph 7-7"
+    },
+    {
+      "source": "<script type=\"text/javascript\">\n// JavaScript example\n\ndocument.getElementById(\"demo\").innerHTML = \"Hello JavaScript!\";\n</script>\nokay\n",
+      "expected": "document 1-6\n  html_block 1-5\n  paragraph 6-6"
+    },
+    {
+      "source": "<textarea>\n\n*foo*\n\n_bar_\n\n</textarea>\n",
+      "expected": "document 1-7\n  html_block 1-7"
+    },
+    {
+      "source": "<style\n  type=\"text/css\">\nh1 {color:red;}\n\np {color:blue;}\n</style>\nokay\n",
+      "expected": "document 1-7\n  html_block 1-6\n  paragraph 7-7"
+    },
+    {
+      "source": "<style\n  type=\"text/css\">\n\nfoo\n",
+      "expected": "document 1-4\n  html_block 1-4"
+    },
+    {
+      "source": "> <div>\n> foo\n\nbar\n",
+      "expected": "document 1-4\n  block_quote 1-2\n    html_block 1-2\n  paragraph 4-4"
+    },
+    {
+      "source": "- <div>\n- foo\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-1\n      html_block 1-1\n    item 2-2\n      paragraph 2-2"
+    },
+    {
+      "source": "<style>p{color:red;}</style>\n*foo*\n",
+      "expected": "document 1-2\n  html_block 1-1\n  paragraph 2-2"
+    },
+    {
+      "source": "<!-- foo -->*bar*\n*baz*\n",
+      "expected": "document 1-2\n  html_block 1-1\n  paragraph 2-2"
+    },
+    {
+      "source": "<script>\nfoo\n</script>1. *bar*\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<!-- Foo\n\nbar\n   baz -->\nokay\n",
+      "expected": "document 1-5\n  html_block 1-4\n  paragraph 5-5"
+    },
+    {
+      "source": "<?php\n\n  echo '>';\n\n?>\nokay\n",
+      "expected": "document 1-6\n  html_block 1-5\n  paragraph 6-6"
+    },
+    {
+      "source": "<!DOCTYPE html>\n",
+      "expected": "document 1-1\n  html_block 1-1"
+    },
+    {
+      "source": "<![CDATA[\nfunction matchwo(a,b)\n{\n  if (a < b && a < 0) then {\n    return 1;\n\n  } else {\n\n    return 0;\n  }\n}\n]]>\nokay\n",
+      "expected": "document 1-13\n  html_block 1-12\n  paragraph 13-13"
+    },
+    {
+      "source": "  <!-- foo -->\n\n    <!-- foo -->\n",
+      "expected": "document 1-3\n  html_block 1-1\n  code_block 3-3"
+    },
+    {
+      "source": "  <div>\n\n    <div>\n",
+      "expected": "document 1-3\n  html_block 1-1\n  code_block 3-3"
+    },
+    {
+      "source": "Foo\n<div>\nbar\n</div>\n",
+      "expected": "document 1-4\n  paragraph 1-1\n  html_block 2-4"
+    },
+    {
+      "source": "<div>\nbar\n</div>\n*foo*\n",
+      "expected": "document 1-4\n  html_block 1-4"
+    },
+    {
+      "source": "Foo\n<a href=\"bar\">\nbaz\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "<div>\n\n*Emphasized* text.\n\n</div>\n",
+      "expected": "document 1-5\n  html_block 1-1\n  paragraph 3-3\n  html_block 5-5"
+    },
+    {
+      "source": "<div>\n*Emphasized* text.\n</div>\n",
+      "expected": "document 1-3\n  html_block 1-3"
+    },
+    {
+      "source": "<table>\n\n<tr>\n\n<td>\nHi\n</td>\n\n</tr>\n\n</table>\n",
+      "expected": "document 1-11\n  html_block 1-1\n  html_block 3-3\n  html_block 5-7\n  html_block 9-9\n  html_block 11-11"
+    },
+    {
+      "source": "<table>\n\n  <tr>\n\n    <td>\n      Hi\n    </td>\n\n  </tr>\n\n</table>\n",
+      "expected": "document 1-11\n  html_block 1-1\n  html_block 3-3\n  code_block 5-7\n  html_block 9-9\n  html_block 11-11"
+    },
+    {
+      "source": "[foo]: /url \"title\"\n\n[foo]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "   [foo]: \n      /url  \n           'the title'  \n\n[foo]\n",
+      "expected": "document 1-5\n  paragraph 5-5"
+    },
+    {
+      "source": "[Foo*bar\\]]:my_(url) 'title (with parens)'\n\n[Foo*bar\\]]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[Foo bar]:\n<my url>\n'title'\n\n[Foo bar]\n",
+      "expected": "document 1-5\n  paragraph 5-5"
+    },
+    {
+      "source": "[foo]: /url '\ntitle\nline1\nline2\n'\n\n[foo]\n",
+      "expected": "document 1-7\n  paragraph 7-7"
+    },
+    {
+      "source": "[foo]: /url 'title\n\nwith blank line'\n\n[foo]\n",
+      "expected": "document 1-5\n  paragraph 1-1\n  paragraph 3-3\n  paragraph 5-5"
+    },
+    {
+      "source": "[foo]:\n/url\n\n[foo]\n",
+      "expected": "document 1-4\n  paragraph 4-4"
+    },
+    {
+      "source": "[foo]:\n\n[foo]\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo]: <>\n\n[foo]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo]: <bar>(baz)\n\n[foo]\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo]: /url\\bar\\*baz \"foo\\\"bar\\baz\"\n\n[foo]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo]\n\n[foo]: url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo]\n\n[foo]: first\n[foo]: second\n",
+      "expected": "document 1-4\n  paragraph 1-1"
+    },
+    {
+      "source": "[FOO]: /url\n\n[Foo]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[ΑΓΩ]: /φου\n\n[αγω]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo]: /url\n",
+      "expected": "document 1-1"
+    },
+    {
+      "source": "[\nfoo\n]: /url\nbar\n",
+      "expected": "document 1-4\n  paragraph 4-4"
+    },
+    {
+      "source": "[foo]: /url \"title\" ok\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo]: /url\n\"title\" ok\n",
+      "expected": "document 1-2\n  paragraph 2-2"
+    },
+    {
+      "source": "    [foo]: /url \"title\"\n\n[foo]\n",
+      "expected": "document 1-3\n  code_block 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "```\n[foo]: /url\n```\n\n[foo]\n",
+      "expected": "document 1-5\n  code_block 1-3\n  paragraph 5-5"
+    },
+    {
+      "source": "Foo\n[bar]: /baz\n\n[bar]\n",
+      "expected": "document 1-4\n  paragraph 1-2\n  paragraph 4-4"
+    },
+    {
+      "source": "# [Foo]\n[foo]: /url\n> bar\n",
+      "expected": "document 1-3\n  heading 1-1\n  block_quote 3-3\n    paragraph 3-3"
+    },
+    {
+      "source": "[foo]: /url\nbar\n===\n[foo]\n",
+      "expected": "document 1-4\n  heading 1-3\n  paragraph 4-4"
+    },
+    {
+      "source": "[foo]: /url\n===\n[foo]\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "[foo]: /foo-url \"foo\"\n[bar]: /bar-url\n  \"bar\"\n[baz]: /baz-url\n\n[foo],\n[bar],\n[baz]\n",
+      "expected": "document 1-8\n  paragraph 6-8"
+    },
+    {
+      "source": "[foo]\n\n> [foo]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  block_quote 3-3"
+    },
+    {
+      "source": "aaa\n\nbbb\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "aaa\nbbb\n\nccc\nddd\n",
+      "expected": "document 1-5\n  paragraph 1-2\n  paragraph 4-5"
+    },
+    {
+      "source": "aaa\n\n\nbbb\n",
+      "expected": "document 1-4\n  paragraph 1-1\n  paragraph 4-4"
+    },
+    {
+      "source": "  aaa\n bbb\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "aaa\n             bbb\n                                       ccc\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "   aaa\nbbb\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "    aaa\nbbb\n",
+      "expected": "document 1-2\n  code_block 1-1\n  paragraph 2-2"
+    },
+    {
+      "source": "aaa     \nbbb     \n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "  \n\naaa\n  \n\n# aaa\n\n  \n",
+      "expected": "document 1-8\n  paragraph 3-3\n  heading 6-6"
+    },
+    {
+      "source": "> # Foo\n> bar\n> baz\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    heading 1-1\n    paragraph 2-3"
+    },
+    {
+      "source": "># Foo\n>bar\n> baz\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    heading 1-1\n    paragraph 2-3"
+    },
+    {
+      "source": "   > # Foo\n   > bar\n > baz\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    heading 1-1\n    paragraph 2-3"
+    },
+    {
+      "source": "    > # Foo\n    > bar\n    > baz\n",
+      "expected": "document 1-3\n  code_block 1-3"
+    },
+    {
+      "source": "> # Foo\n> bar\nbaz\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    heading 1-1\n    paragraph 2-3"
+    },
+    {
+      "source": "> bar\nbaz\n> foo\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    paragraph 1-3"
+    },
+    {
+      "source": "> foo\n---\n",
+      "expected": "document 1-2\n  block_quote 1-1\n    paragraph 1-1\n  thematic_break 2-2"
+    },
+    {
+      "source": "> - foo\n- bar\n",
+      "expected": "document 1-2\n  block_quote 1-1\n    list 1-1\n      item 1-1\n        paragraph 1-1\n  list 2-2\n    item 2-2\n      paragraph 2-2"
+    },
+    {
+      "source": ">     foo\n    bar\n",
+      "expected": "document 1-2\n  block_quote 1-1\n    code_block 1-1\n  code_block 2-2"
+    },
+    {
+      "source": "> ```\nfoo\n```\n",
+      "expected": "document 1-3\n  block_quote 1-1\n    code_block 1-1\n  paragraph 2-2\n  code_block 3-3"
+    },
+    {
+      "source": "> foo\n    - bar\n",
+      "expected": "document 1-2\n  block_quote 1-2\n    paragraph 1-2"
+    },
+    {
+      "source": ">\n",
+      "expected": "document 1-1\n  block_quote 1-1"
+    },
+    {
+      "source": ">\n>  \n> \n",
+      "expected": "document 1-3\n  block_quote 1-3"
+    },
+    {
+      "source": ">\n> foo\n>  \n",
+      "expected": "document 1-3\n  block_quote 1-3\n    paragraph 2-2"
+    },
+    {
+      "source": "> foo\n\n> bar\n",
+      "expected": "document 1-3\n  block_quote 1-1\n    paragraph 1-1\n  block_quote 3-3\n    paragraph 3-3"
+    },
+    {
+      "source": "> foo\n> bar\n",
+      "expected": "document 1-2\n  block_quote 1-2\n    paragraph 1-2"
+    },
+    {
+      "source": "> foo\n>\n> bar\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    paragraph 1-1\n    paragraph 3-3"
+    },
+    {
+      "source": "foo\n> bar\n",
+      "expected": "document 1-2\n  paragraph 1-1\n  block_quote 2-2\n    paragraph 2-2"
+    },
+    {
+      "source": "> aaa\n***\n> bbb\n",
+      "expected": "document 1-3\n  block_quote 1-1\n    paragraph 1-1\n  thematic_break 2-2\n  block_quote 3-3\n    paragraph 3-3"
+    },
+    {
+      "source": "> bar\nbaz\n",
+      "expected": "document 1-2\n  block_quote 1-2\n    paragraph 1-2"
+    },
+    {
+      "source": "> bar\n\nbaz\n",
+      "expected": "document 1-3\n  block_quote 1-1\n    paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "> bar\n>\nbaz\n",
+      "expected": "document 1-3\n  block_quote 1-2\n    paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "> > > foo\nbar\n",
+      "expected": "document 1-2\n  block_quote 1-2\n    block_quote 1-2\n      block_quote 1-2\n        paragraph 1-2"
+    },
+    {
+      "source": ">>> foo\n> bar\n>>baz\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    block_quote 1-3\n      block_quote 1-3\n        paragraph 1-3"
+    },
+    {
+      "source": ">     code\n\n>    not code\n",
+      "expected": "document 1-3\n  block_quote 1-1\n    code_block 1-1\n  block_quote 3-3\n    paragraph 3-3"
+    },
+    {
+      "source": "A paragraph\nwith two lines.\n\n    indented code\n\n> A block quote.\n",
+      "expected": "document 1-6\n  paragraph 1-2\n  code_block 4-4\n  block_quote 6-6\n    paragraph 6-6"
+    },
+    {
+      "source": "1.  A paragraph\n    with two lines.\n\n        indented code\n\n    > A block quote.\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-2\n      code_block 4-4\n      block_quote 6-6\n        paragraph 6-6"
+    },
+    {
+      "source": "- one\n\n two\n",
+      "expected": "document 1-3\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "- one\n\n  two\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      paragraph 3-3"
+    },
+    {
+      "source": " -    one\n\n     two\n",
+      "expected": "document 1-3\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  code_block 3-3"
+    },
+    {
+      "source": " -    one\n\n      two\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      paragraph 3-3"
+    },
+    {
+      "source": "   > > 1.  one\n>>\n>>     two\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    block_quote 1-3\n      list 1-3\n        item 1-3\n          paragraph 1-1\n          paragraph 3-3"
+    },
+    {
+      "source": ">>- one\n>>\n  >  > two\n",
+      "expected": "document 1-3\n  block_quote 1-3\n    block_quote 1-3\n      list 1-1\n        item 1-1\n          paragraph 1-1\n      paragraph 3-3"
+    },
+    {
+      "source": "-one\n\n2.two\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "- foo\n\n\n  bar\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-4\n      paragraph 1-1\n      paragraph 4-4"
+    },
+    {
+      "source": "1.  foo\n\n    ```\n    bar\n    ```\n\n    baz\n\n    > bam\n",
+      "expected": "document 1-9\n  list 1-9\n    item 1-9\n      paragraph 1-1\n      code_block 3-5\n      paragraph 7-7\n      block_quote 9-9\n        paragraph 9-9"
+    },
+    {
+      "source": "- Foo\n\n      bar\n\n\n      baz\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-1\n      code_block 3-6"
+    },
+    {
+      "source": "123456789. ok\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      paragraph 1-1"
+    },
+    {
+      "source": "1234567890. not ok\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "0. ok\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      paragraph 1-1"
+    },
+    {
+      "source": "003. ok\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      paragraph 1-1"
+    },
+    {
+      "source": "-1. not ok\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "- foo\n\n      bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      code_block 3-3"
+    },
+    {
+      "source": "  10.  foo\n\n           bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      code_block 3-3"
+    },
+    {
+      "source": "    indented code\n\nparagraph\n\n    more code\n",
+      "expected": "document 1-5\n  code_block 1-1\n  paragraph 3-3\n  code_block 5-5"
+    },
+    {
+      "source": "1.     indented code\n\n   paragraph\n\n       more code\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-5\n      code_block 1-1\n      paragraph 3-3\n      code_block 5-5"
+    },
+    {
+      "source": "1.      indented code\n\n   paragraph\n\n       more code\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-5\n      code_block 1-1\n      paragraph 3-3\n      code_block 5-5"
+    },
+    {
+      "source": "   foo\n\nbar\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "-    foo\n\n  bar\n",
+      "expected": "document 1-3\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "-  foo\n\n   bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-3\n      paragraph 1-1\n      paragraph 3-3"
+    },
+    {
+      "source": "-\n  foo\n-\n  ```\n  bar\n  ```\n-\n      baz\n",
+      "expected": "document 1-8\n  list 1-8\n    item 1-2\n      paragraph 2-2\n    item 3-6\n      code_block 4-6\n    item 7-8\n      code_block 8-8"
+    },
+    {
+      "source": "-   \n  foo\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-2\n      paragraph 2-2"
+    },
+    {
+      "source": "-\n\n  foo\n",
+      "expected": "document 1-3\n  list 1-1\n    item 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "- foo\n-\n- bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-1\n      paragraph 1-1\n    item 2-2\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "- foo\n-   \n- bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-1\n      paragraph 1-1\n    item 2-2\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "1. foo\n2.\n3. bar\n",
+      "expected": "document 1-3\n  list 1-3\n    item 1-1\n      paragraph 1-1\n    item 2-2\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "*\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1"
+    },
+    {
+      "source": "foo\n*\n\nfoo\n1.\n",
+      "expected": "document 1-5\n  paragraph 1-2\n  paragraph 4-5"
+    },
+    {
+      "source": " 1.  A paragraph\n     with two lines.\n\n         indented code\n\n     > A block quote.\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-2\n      code_block 4-4\n      block_quote 6-6\n        paragraph 6-6"
+    },
+    {
+      "source": "  1.  A paragraph\n      with two lines.\n\n          indented code\n\n      > A block quote.\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-2\n      code_block 4-4\n      block_quote 6-6\n        paragraph 6-6"
+    },
+    {
+      "source": "   1.  A paragraph\n       with two lines.\n\n           indented code\n\n       > A block quote.\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-2\n      code_block 4-4\n      block_quote 6-6\n        paragraph 6-6"
+    },
+    {
+      "source": "    1.  A paragraph\n        with two lines.\n\n            indented code\n\n        > A block quote.\n",
+      "expected": "document 1-6\n  code_block 1-6"
+    },
+    {
+      "source": "  1.  A paragraph\nwith two lines.\n\n          indented code\n\n      > A block quote.\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-2\n      code_block 4-4\n      block_quote 6-6\n        paragraph 6-6"
+    },
+    {
+      "source": "  1.  A paragraph\n    with two lines.\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-2\n      paragraph 1-2"
+    },
+    {
+      "source": "> 1. > Blockquote\ncontinued here.\n",
+      "expected": "document 1-2\n  block_quote 1-2\n    list 1-2\n      item 1-2\n        block_quote 1-2\n          paragraph 1-2"
+    },
+    {
+      "source": "> 1. > Blockquote\n> continued here.\n",
+      "expected": "document 1-2\n  block_quote 1-2\n    list 1-2\n      item 1-2\n        block_quote 1-2\n          paragraph 1-2"
+    },
+    {
+      "source": "- foo\n  - bar\n    - baz\n      - boo\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-4\n      paragraph 1-1\n      list 2-4\n        item 2-4\n          paragraph 2-2\n          list 3-4\n            item 3-4\n              paragraph 3-3\n              list 4-4\n                item 4-4\n                  paragraph 4-4"
+    },
+    {
+      "source": "- foo\n - bar\n  - baz\n   - boo\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n    item 3-3\n      paragraph 3-3\n    item 4-4\n      paragraph 4-4"
+    },
+    {
+      "source": "10) foo\n    - bar\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-2\n      paragraph 1-1\n      list 2-2\n        item 2-2\n          paragraph 2-2"
+    },
+    {
+      "source": "10) foo\n   - bar\n",
+      "expected": "document 1-2\n  list 1-1\n    item 1-1\n      paragraph 1-1\n  list 2-2\n    item 2-2\n      paragraph 2-2"
+    },
+    {
+      "source": "- - foo\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      list 1-1\n        item 1-1\n          paragraph 1-1"
+    },
+    {
+      "source": "1. - 2. foo\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      list 1-1\n        item 1-1\n          list 1-1\n            item 1-1\n              paragraph 1-1"
+    },
+    {
+      "source": "- # Foo\n- Bar\n  ---\n  baz\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-1\n      heading 1-1\n    item 2-4\n      heading 2-3\n      paragraph 4-4"
+    },
+    {
+      "source": "- foo\n- bar\n+ baz\n",
+      "expected": "document 1-3\n  list 1-2\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n  list 3-3\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "1. foo\n2. bar\n3) baz\n",
+      "expected": "document 1-3\n  list 1-2\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n  list 3-3\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "Foo\n- bar\n- baz\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  list 2-3\n    item 2-2\n      paragraph 2-2\n    item 3-3\n      paragraph 3-3"
+    },
+    {
+      "source": "The number of windows in my house is\n14.  The number of doors is 6.\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "The number of windows in my house is\n1.  The number of doors is 6.\n",
+      "expected": "document 1-2\n  paragraph 1-1\n  list 2-2\n    item 2-2\n      paragraph 2-2"
+    },
+    {
+      "source": "- foo\n\n- bar\n\n\n- baz\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-1\n      paragraph 1-1\n    item 3-3\n      paragraph 3-3\n    item 6-6\n      paragraph 6-6"
+    },
+    {
+      "source": "- foo\n  - bar\n    - baz\n\n\n      bim\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-6\n      paragraph 1-1\n      list 2-6\n        item 2-6\n          paragraph 2-2\n          list 3-6\n            item 3-6\n              paragraph 3-3\n              paragraph 6-6"
+    },
+    {
+      "source": "- foo\n- bar\n\n<!-- -->\n\n- baz\n- bim\n",
+      "expected": "document 1-7\n  list 1-2\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n  html_block 4-4\n  list 6-7\n    item 6-6\n      paragraph 6-6\n    item 7-7\n      paragraph 7-7"
+    },
+    {
+      "source": "-   foo\n\n    notcode\n\n-   foo\n\n<!-- -->\n\n    code\n",
+      "expected": "document 1-9\n  list 1-5\n    item 1-3\n      paragraph 1-1\n      paragraph 3-3\n    item 5-5\n      paragraph 5-5\n  html_block 7-7\n  code_block 9-9"
+    },
+    {
+      "source": "- a\n - b\n  - c\n   - d\n  - e\n - f\n- g\n",
+      "expected": "document 1-7\n  list 1-7\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n    item 3-3\n      paragraph 3-3\n    item 4-4\n      paragraph 4-4\n    item 5-5\n      paragraph 5-5\n    item 6-6\n      paragraph 6-6\n    item 7-7\n      paragraph 7-7"
+    },
+    {
+      "source": "1. a\n\n  2. b\n\n   3. c\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-1\n      paragraph 1-1\n    item 3-3\n      paragraph 3-3\n    item 5-5\n      paragraph 5-5"
+    },
+    {
+      "source": "- a\n - b\n  - c\n   - d\n    - e\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n    item 3-3\n      paragraph 3-3\n    item 4-5\n      paragraph 4-5"
+    },
+    {
+      "source": "1. a\n\n  2. b\n\n    3. c\n",
+      "expected": "document 1-5\n  list 1-3\n    item 1-1\n      paragraph 1-1\n    item 3-3\n      paragraph 3-3\n  code_block 5-5"
+    },
+    {
+      "source": "- a\n- b\n\n- c\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-1\n      paragraph 1-1\n    item 2-2\n      paragraph 2-2\n    item 4-4\n      paragraph 4-4"
+    },
+    {
+      "source": "* a\n*\n\n* c\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-1\n      paragraph 1-1\n    item 2-2\n    item 4-4\n      paragraph 4-4"
+    },
+    {
+      "source": "- a\n- b\n\n  c\n- d\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-1\n      paragraph 1-1\n    item 2-4\n      paragraph 2-2\n      paragraph 4-4\n    item 5-5\n      paragraph 5-5"
+    },
+    {
+      "source": "- a\n- b\n\n  [ref]: /url\n- d\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-1\n      paragraph 1-1\n    item 2-4\n      paragraph 2-2\n    item 5-5\n      paragraph 5-5"
+    },
+    {
+      "source": "- a\n- ```\n  b\n\n\n  ```\n- c\n",
+      "expected": "document 1-7\n  list 1-7\n    item 1-1\n      paragraph 1-1\n    item 2-6\n      code_block 2-6\n    item 7-7\n      paragraph 7-7"
+    },
+    {
+      "source": "- a\n  - b\n\n    c\n- d\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-4\n      paragraph 1-1\n      list 2-4\n        item 2-4\n          paragraph 2-2\n          paragraph 4-4\n    item 5-5\n      paragraph 5-5"
+    },
+    {
+      "source": "* a\n  > b\n  >\n* c\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-3\n      paragraph 1-1\n      block_quote 2-3\n        paragraph 2-2\n    item 4-4\n      paragraph 4-4"
+    },
+    {
+      "source": "- a\n  > b\n  ```\n  c\n  ```\n- d\n",
+      "expected": "document 1-6\n  list 1-6\n    item 1-5\n      paragraph 1-1\n      block_quote 2-2\n        paragraph 2-2\n      code_block 3-5\n    item 6-6\n      paragraph 6-6"
+    },
+    {
+      "source": "- a\n",
+      "expected": "document 1-1\n  list 1-1\n    item 1-1\n      paragraph 1-1"
+    },
+    {
+      "source": "- a\n  - b\n",
+      "expected": "document 1-2\n  list 1-2\n    item 1-2\n      paragraph 1-1\n      list 2-2\n        item 2-2\n          paragraph 2-2"
+    },
+    {
+      "source": "1. ```\n   foo\n   ```\n\n   bar\n",
+      "expected": "document 1-5\n  list 1-5\n    item 1-5\n      code_block 1-3\n      paragraph 5-5"
+    },
+    {
+      "source": "* foo\n  * bar\n\n  baz\n",
+      "expected": "document 1-4\n  list 1-4\n    item 1-4\n      paragraph 1-1\n      list 2-2\n        item 2-2\n          paragraph 2-2\n      paragraph 4-4"
+    },
+    {
+      "source": "- a\n  - b\n  - c\n\n- d\n  - e\n  - f\n",
+      "expected": "document 1-7\n  list 1-7\n    item 1-3\n      paragraph 1-1\n      list 2-3\n        item 2-2\n          paragraph 2-2\n        item 3-3\n          paragraph 3-3\n    item 5-7\n      paragraph 5-5\n      list 6-7\n        item 6-6\n          paragraph 6-6\n        item 7-7\n          paragraph 7-7"
+    },
+    {
+      "source": "`hi`lo`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`foo`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`` foo ` bar ``\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "` `` `\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`  ``  `\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "` a`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "` b `\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "` `\n`  `\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "``\nfoo\nbar  \nbaz\n``\n",
+      "expected": "document 1-5\n  paragraph 1-5"
+    },
+    {
+      "source": "``\nfoo \n``\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "`foo   bar \nbaz`\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "`foo\\`bar`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "``foo`bar``\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "` foo `` bar `\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo`*`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[not a `link](/foo`)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`<a href=\"`\">`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a href=\"`\">`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`<http://foo.bar.`baz>`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<http://foo.bar.`baz>`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "```foo``\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`foo\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "`foo``bar``\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo bar*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "a * foo bar*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "a*\"foo\"*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "* a *\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo*bar*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "5*6*78\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo bar_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_ foo bar_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "a_\"foo\"_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo_bar_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "5_6_78\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "пристаням_стремятся_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "aa_\"bb\"_cc\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo-_(bar)_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo bar *\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo bar\n*\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "*(*foo)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*(*foo*)*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo*bar\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo bar _\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_(_foo)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_(_foo_)_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo_bar\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_пристаням_стремятся\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo_bar_baz_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_(bar)_.\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo bar**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "** foo bar**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "a**\"foo\"**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo**bar**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo bar__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__ foo bar__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__\nfoo bar__\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "a__\"foo\"__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo__bar__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "5__6__78\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "пристаням__стремятся__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo, __bar__, baz__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo-__(bar)__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo bar **\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**(**foo)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*(**foo**)*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**Gomphocarpus (*Gomphocarpus physocarpus*, syn.\n*Asclepias physocarpa*)**\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "**foo \"*bar*\" foo**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo**bar\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo bar __\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__(__foo)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_(__foo__)_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo__bar\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__пристаням__стремятся\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo__bar__baz__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__(bar)__.\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo [bar](/url)*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo\nbar*\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "_foo __bar__ baz_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo _bar_ baz_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo_ bar_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo *bar**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo **bar** baz*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo**bar**baz*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo**bar*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "***foo** bar*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo **bar***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo**bar***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo***bar***baz\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo******bar*********baz\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo **bar *baz* bim** bop*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo [*bar*](/url)*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "** is not an empty emphasis\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**** is not an empty strong emphasis\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo [bar](/url)**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo\nbar**\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "__foo _bar_ baz__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo __bar__ baz__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "____foo__ bar__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo **bar****\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo *bar* baz**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo*bar*baz**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "***foo* bar**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo *bar***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo *bar **baz**\nbim* bop**\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "**foo [*bar*](/url)**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__ is not an empty emphasis\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "____ is not an empty strong emphasis\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo ***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo *\\**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo *_*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo *****\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo **\\***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo **_**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "***foo**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "****foo*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo****\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo ___\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo _\\__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo _*_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo _____\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo __\\___\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo __*__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "___foo__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "____foo_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo___\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo____\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*_foo_*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__foo__\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_*foo*_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "****foo****\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "____foo____\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "******foo******\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "***foo***\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_____foo_____\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo _bar* baz_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo __bar *baz bim__ bam*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**foo **bar baz**\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo *bar baz*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*[bar*](/url)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_foo [bar_](/url)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*<img src=\"foo\" title=\"*\"/>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**<a href=\"**\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__<a href=\"__\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*a `*`*\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "_a `_`_\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "**a<http://foo.bar/?q=**>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "__a<http://foo.bar/?q=__>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/uri \"title\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[](./target.md)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link]()\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](<>)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[]()\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/my uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](</my uri>)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](foo\nbar)\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "[link](<foo\nbar>)\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "[a](<b)c>)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](<foo\\>)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[a](<b)c\n[a](<b)c>\n[a](<b>c)\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "[link](\\(foo\\))\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](foo(and(bar)))\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](foo(and(bar))\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](foo\\(and\\(bar\\))\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](<foo(and(bar)>)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](foo\\)\\:)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](#fragment)\n\n[link](http://example.com#fragment)\n\n[link](http://example.com?foo=3#frag)\n",
+      "expected": "document 1-5\n  paragraph 1-1\n  paragraph 3-3\n  paragraph 5-5"
+    },
+    {
+      "source": "[link](foo\\bar)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](foo%20b&auml;)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](\"title\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/url \"title\")\n[link](/url 'title')\n[link](/url (title))\n",
+      "expected": "document 1-3\n  paragraph 1-3"
+    },
+    {
+      "source": "[link](/url \"title \\\"&quot;\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/url \"title\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/url \"title \"and\" title\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](/url 'title \"and\" title')\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link](   /uri\n  \"title\"  )\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "[link] (/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link [foo [bar]]](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link] bar](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link [bar](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link \\[bar](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[link *foo **bar** `#`*](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[![moon](moon.jpg)](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo [bar](/uri)](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo *[bar [baz](/uri)](/uri)*](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![[[foo](uri1)](uri2)](uri3)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*[foo*](/uri)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo *bar](baz*)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "*foo [bar* baz]\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo <bar attr=\"](baz)\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo`](/uri)`\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo<http://example.com/?search=](uri)>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][bar]\n\n[bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[link [foo [bar]]][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[link \\[bar][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[link *foo **bar** `#`*][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[![moon](moon.jpg)][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo [bar](/uri)][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo *bar [baz][ref]*][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "*[foo*][ref]\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo *bar][ref]*\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo <bar attr=\"][ref]\">\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo`][ref]`\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo<http://example.com/?search=][ref]>\n\n[ref]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][BaR]\n\n[bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[ẞ]\n\n[SS]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[Foo\n  bar]: /url\n\n[Baz][Foo bar]\n",
+      "expected": "document 1-4\n  paragraph 4-4"
+    },
+    {
+      "source": "[foo] [bar]\n\n[bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo]\n[bar]\n\n[bar]: /url \"title\"\n",
+      "expected": "document 1-4\n  paragraph 1-2"
+    },
+    {
+      "source": "[foo]: /url1\n\n[foo]: /url2\n\n[bar][foo]\n",
+      "expected": "document 1-5\n  paragraph 5-5"
+    },
+    {
+      "source": "[bar][foo\\!]\n\n[foo!]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][ref[]\n\n[ref[]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo][ref[bar]]\n\n[ref[bar]]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "[[[foo]]]\n\n[[[foo]]]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo][ref\\[]\n\n[ref\\[]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[bar\\\\]: /uri\n\n[bar\\\\]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[]\n\n[]: /uri\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "[\n ]\n\n[\n ]: /uri\n",
+      "expected": "document 1-5\n  paragraph 1-2\n  paragraph 4-5"
+    },
+    {
+      "source": "[foo][]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[*foo* bar][]\n\n[*foo* bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[Foo][]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo] \n[]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-4\n  paragraph 1-2"
+    },
+    {
+      "source": "[foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[*foo* bar]\n\n[*foo* bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[[*foo* bar]]\n\n[*foo* bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[[bar [foo]\n\n[foo]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[Foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo] bar\n\n[foo]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "\\[foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo*]: /url\n\n*[foo*]\n",
+      "expected": "document 1-3\n  paragraph 3-3"
+    },
+    {
+      "source": "[foo][bar]\n\n[foo]: /url1\n[bar]: /url2\n",
+      "expected": "document 1-4\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][]\n\n[foo]: /url1\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo]()\n\n[foo]: /url1\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo](not a link)\n\n[foo]: /url1\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][bar][baz]\n\n[baz]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][bar][baz]\n\n[baz]: /url1\n[bar]: /url2\n",
+      "expected": "document 1-4\n  paragraph 1-1"
+    },
+    {
+      "source": "[foo][bar][baz]\n\n[baz]: /url1\n[foo]: /url2\n",
+      "expected": "document 1-4\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo](/url \"title\")\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo *bar*]\n\n[foo *bar*]: train.jpg \"train & tracks\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo ![bar](/url)](/url2)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo [bar](/url)](/url2)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo *bar*][]\n\n[foo *bar*]: train.jpg \"train & tracks\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo *bar*][foobar]\n\n[FOOBAR]: train.jpg \"train & tracks\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo](train.jpg)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "My ![foo bar](/path/to/train.jpg  \"title\"   )\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo](<url>)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![](/url)\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo][bar]\n\n[bar]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo][bar]\n\n[BAR]: /url\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo][]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![*foo* bar][]\n\n[*foo* bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![Foo][]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![foo] \n[]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-4\n  paragraph 1-2"
+    },
+    {
+      "source": "![foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![*foo* bar]\n\n[*foo* bar]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "![[foo]]\n\n[[foo]]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "![Foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "!\\[foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "\\![foo]\n\n[foo]: /url \"title\"\n",
+      "expected": "document 1-3\n  paragraph 1-1"
+    },
+    {
+      "source": "<http://foo.bar.baz>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<http://foo.bar.baz/test?q=hello&id=22&boolean>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<irc://foo.bar:2233/baz>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<MAILTO:FOO@BAR.BAZ>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a+b+c:d>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<made-up-scheme://foo,bar>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<http://../>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<localhost:5001/foo>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<http://foo.bar/baz bim>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<http://example.com/\\[\\>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<foo@bar.example.com>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<foo+special@Bar.baz-bar0.com>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<foo\\+@bar.example.com>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "< http://foo.bar >\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<m:abc>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<foo.bar.baz>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "http://example.com\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo@bar.example.com\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a><bab><c2c>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a/><b2/>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a  /><b2\ndata=\"foo\" >\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "<a foo=\"bar\" bam = 'baz <em>\"</em>'\n_boolean zoop:33=zoop:33 />\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "Foo <responsive-image src=\"foo.jpg\" />\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<33> <__>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a h*#ref=\"hi\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a href=\"hi'> <a href=hi'>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "< a><\nfoo><bar/ >\n<foo bar=baz\nbim!bop />\n",
+      "expected": "document 1-4\n  paragraph 1-4"
+    },
+    {
+      "source": "<a href='bar'title=title>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "</a></foo >\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "</a href=\"foo\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo <!-- this is a --\ncomment - with hyphens -->\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo <!--> foo -->\n\nfoo <!---> foo -->\n",
+      "expected": "document 1-3\n  paragraph 1-1\n  paragraph 3-3"
+    },
+    {
+      "source": "foo <?php echo $a; ?>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo <!ELEMENT br EMPTY>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo <![CDATA[>&<]]>\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo <a href=\"&ouml;\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo <a href=\"\\*\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "<a href=\"\\\"\">\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo  \nbaz\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo\\\nbaz\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo       \nbaz\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo  \n     bar\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo\\\n     bar\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "*foo  \nbar*\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "*foo\\\nbar*\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "`code  \nspan`\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "`code\\\nspan`\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "<a href=\"foo  \nbar\">\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "<a href=\"foo\\\nbar\">\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo\\\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "foo  \n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "### foo\\\n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "### foo  \n",
+      "expected": "document 1-1\n  heading 1-1"
+    },
+    {
+      "source": "foo\nbaz\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "foo \n baz\n",
+      "expected": "document 1-2\n  paragraph 1-2"
+    },
+    {
+      "source": "hello $.;'there\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "Foo χρῆν\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    },
+    {
+      "source": "Multiple     spaces\n",
+      "expected": "document 1-1\n  paragraph 1-1"
+    }
+  ]
+}

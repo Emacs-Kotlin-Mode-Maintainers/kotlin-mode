@@ -354,6 +354,15 @@ It have the type and the start position.")
   "Return the start position of the CHUNK."
   (and chunk (oref chunk start)))
 
+(defun kotlin-mode--chunk-end (chunk)
+  "Return the end position of the CHUNK."
+  (save-excursion
+    (goto-char (oref chunk start))
+    (if (kotlin-mode--chunk-comment-p chunk)
+        (forward-comment 1)
+      (kotlin-mode--forward-token))
+    (point)))
+
 (defun kotlin-mode--chunk-comment-p (chunk)
   "Return non-nil if the CHUNK is a comment."
   (and chunk
@@ -454,6 +463,17 @@ If PARSER-STATE is given, it is used instead of (syntax-ppss)."
                      :start (1- (point))))
      (t
       nil))))
+
+(defun kotlin-mode--chunk-after-spaces ()
+  "Return the chunk at the point or after spaces.
+
+If there is no chunk at the point nor after spaces, return nil."
+  (or (kotlin-mode--chunk-after)
+      (save-excursion
+        (skip-chars-forward " ")
+        (when (memq (char-after) '(?\" ?/))
+          (forward-char)
+          (kotlin-mode--chunk-after)))))
 
 ;; Syntax table
 
@@ -607,8 +627,8 @@ expression as a token with one of the following types:
                                       :end (point))))
     (cond
      ;; Tokens that end a statement
-     ((memq (kotlin-mode--token-text previous-token)
-            '("return" "continue" "break"))
+     ((member (kotlin-mode--token-text previous-token)
+              '("return" "continue" "break"))
       t)
 
      ;; .* in import declarations end a statement.
@@ -1635,7 +1655,7 @@ the same line, \"->\",  or \"{\"."
                       (kotlin-mode--forward-token-simple))))
     (and (equal (kotlin-mode--token-text token) "else")
          (not (eq (kotlin-mode--token-type next-token) '{))
-         (not (eq (kotlin-mode--token-text next-token) "->"))
+         (not (equal (kotlin-mode--token-text next-token) "->"))
          (not (and
                (equal (kotlin-mode--token-text next-token) "if")
                (save-excursion
@@ -2583,6 +2603,17 @@ Newlines inside comments are ignored."
               (save-excursion
                 (forward-comment (- (point)))
                 (point)))))
+
+(defun kotlin-mode--same-line-p (point1 point2)
+  "Return non-nil if POINT1 and POINT2 is on the same line.
+
+Return nil otherwise."
+  (= (save-excursion
+       (goto-char point1)
+       (line-beginning-position))
+     (save-excursion
+       (goto-char point2)
+       (line-beginning-position))))
 
 (provide 'kotlin-mode-lexer)
 

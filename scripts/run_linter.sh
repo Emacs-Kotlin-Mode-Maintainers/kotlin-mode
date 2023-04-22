@@ -14,6 +14,6 @@ rm -f *-autoloads.el || exit 1
   -l elisp-lint.el \
   --eval '(setq elisp-lint--debug t)' \
   -f elisp-lint-files-batch \
-  *.el || exit 1
+  *.el "$@" || exit 1
 rm -f *.elc test/*.elc || exit 1
 rm -f *-autoloads.el || exit 1
