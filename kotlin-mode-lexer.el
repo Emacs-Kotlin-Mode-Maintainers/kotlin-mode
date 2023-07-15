@@ -588,7 +588,7 @@ expression as a token with one of the following types:
           kotlin-mode--parameter-modifier-keywords
           kotlin-mode--function-modifier-keywords))
 
-(defconst kotlin-beginning-of-defun-re
+(defconst kotlin-mode--beginning-of-defun-re
   (concat
    "\\s-*"
    (regexp-opt kotlin-mode--modifier-keywords)
@@ -2499,7 +2499,12 @@ Assuming the point is on a string."
   "Move backward to the beginning of the current defun.
 With ARG, move backward multiple defuns.  Negative ARG means
 move forward."
-  (when (re-search-backward kotlin-beginning-of-defun-re nil t (or arg 1))
+  (beginning-of-line)
+  ;; If currently looking at an annotation, go its function's beginning.
+  (if (looking-at "\\s-*@")
+      (re-search-forward kotlin-mode--beginning-of-defun-re nil t 1)
+    (if (< arg 0) (+ arg 1) (- arg 1)))
+  (when (re-search-backward kotlin-mode--beginning-of-defun-re nil t (or arg 1))
     (beginning-of-line)
     t))
 
@@ -2509,7 +2514,7 @@ move forward."
   ;; If currently looking at an annotation, go to its function's beginning.
   (if (looking-at "\\s-*@")
       (kotlin-mode--beginning-of-defun -1))
-  (while (not (looking-at kotlin-beginning-of-defun-re))
+  (while (not (looking-at kotlin-mode--beginning-of-defun-re))
     (forward-line -1)
     (beginning-of-line))
   (if (< (save-excursion (re-search-forward "{"))
