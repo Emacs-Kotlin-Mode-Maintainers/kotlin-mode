@@ -588,6 +588,12 @@ expression as a token with one of the following types:
           kotlin-mode--parameter-modifier-keywords
           kotlin-mode--function-modifier-keywords))
 
+(defconst kotlin-mode--beginning-of-defun-re
+  (concat
+   "\\s-*"
+   (regexp-opt kotlin-mode--modifier-keywords)
+   "*\\s-*\\_<fun\\_>"))
+
 (defun kotlin-mode--implicit-semi-p ()
   "Return non-nil if the point is after the end of a statement."
   (let ((previous-token (save-excursion
@@ -2488,6 +2494,41 @@ Assuming the point is on a string."
       (goto-char matching-bracket)
       (kotlin-mode--forward-string-chunk)))
   (point))
+
+(defun kotlin-mode--beginning-of-defun (&optional arg)
+  "Move backward to the beginning of the current defun.
+With ARG, move backward multiple defuns.  Negative ARG means
+move forward."
+  (beginning-of-line)
+  ;; If currently looking at an annotation, go its function's beginning.
+  (if (looking-at "\\s-*@")
+      (re-search-forward kotlin-mode--beginning-of-defun-re nil t 1)
+    (if (< arg 0) (+ arg 1) (- arg 1)))
+  (when (re-search-backward kotlin-mode--beginning-of-defun-re nil t (or arg 1))
+    (beginning-of-line)
+    t))
+
+(defun kotlin-mode--end-of-defun ()
+  "Move forward to the end of the current defun."
+  (beginning-of-line)
+  ;; If currently looking at an annotation, go to its function's beginning.
+  (if (looking-at "\\s-*@")
+      (kotlin-mode--beginning-of-defun -1))
+  (while (not (looking-at kotlin-mode--beginning-of-defun-re))
+    (forward-line -1)
+    (beginning-of-line))
+  (if (< (save-excursion (re-search-forward "{"))
+         (save-excursion (re-search-forward "=")))
+      (progn
+        (re-search-forward "{")
+        (backward-char)
+        (condition-case nil
+            (forward-sexp)
+          (scan-error (goto-char (point-max)))))
+    ;; Single expression function
+    (re-search-forward "=")
+    (forward-paragraph)
+    (backward-char)))
 
 (defun kotlin-mode--goto-non-comment-bol ()
   "Back to the beginning of line that is not inside a comment."
