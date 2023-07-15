@@ -383,6 +383,9 @@ and return non-nil.  Return nil otherwise."
 
   (delete-overlay kotlin-mode--anchor-overlay)
 
+  (setq-local beginning-of-defun-function #'kotlin-mode--beginning-of-defun)
+  (setq-local end-of-defun-function #'kotlin-mode--end-of-defun)
+
   :group 'kotlin
   :syntax-table kotlin-mode-syntax-table)
 
