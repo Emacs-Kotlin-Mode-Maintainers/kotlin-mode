@@ -150,7 +150,7 @@ For argument BODY, see `save-mark-and-excursion'."
     (define-key map (kbd "C-c C-c") 'kotlin-send-block)
     (define-key map (kbd "C-c C-b") 'kotlin-send-buffer)
     (define-key map [remap indent-new-comment-line]
-      #'kotlin-mode--indent-new-comment-line)
+                #'kotlin-mode--indent-new-comment-line)
     map)
   "Keymap for `kotlin-mode'.")
 
